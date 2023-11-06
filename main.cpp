@@ -45,6 +45,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int mousePosX = 0;
 	int mousePosY = 0;
 
+	int accelerateStartLine = WIN_WIDTH / 2;//略称ASL
+
+	int furthermoreASL1 = accelerateStartLine + 213;
+	int furthermoreASL2 = furthermoreASL1 + 213;
+	int furthermoreASL3 = accelerateStartLine - 213;
+	int furthermoreASL4 = furthermoreASL3 - 213;
+
+
+
 	int playerTexture = Novice::LoadTexture("white1x1.png");
 
 
@@ -84,17 +93,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		player.rightBottom.y = player.pos.y + player.halfHeight;
 
 
+
 		Novice::GetMousePosition(&mousePosX, &mousePosY);
 
-		if (mousePosX < WIN_WIDTH / 2) {
-
-			player.acceleration.x = -0.1f;
-		}
-		else if (mousePosX >= WIN_WIDTH / 2) {
+		if (mousePosX >= WIN_WIDTH / 2 && mousePosX < furthermoreASL1) {
 			player.acceleration.x = 0.1f;
 		}
-		///
-		/// 
+		else if (mousePosX >= furthermoreASL1 && mousePosX < furthermoreASL2) {
+			player.acceleration.x = 0.125f;
+		}
+		else if (mousePosX >= furthermoreASL2) {
+			player.acceleration.x = 0.15f;
+		}
+		else if (mousePosX < WIN_WIDTH / 2 && mousePosX > furthermoreASL3) {
+			player.acceleration.x = -0.1f;
+		}
+		else if (mousePosX <= furthermoreASL3 && mousePosX > furthermoreASL4) {
+			player.acceleration.x = -0.125f;
+		}
+		else if (mousePosX <= furthermoreASL4) {
+			player.acceleration.x = -0.15f;
+		}
+
+		if (player.pos.x < player.halfWidth) {
+
+			player.speed.x = 0;
+			player.pos.x = player.halfWidth;
+
+		}
+		else if (player.pos.x > WIN_WIDTH - player.halfWidth) {
+			player.speed.x = 0;
+			player.acceleration.x = 0;
+			player.pos.x = WIN_WIDTH - player.halfWidth;
+		}
+
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -102,6 +135,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		Novice::ScreenPrintf(0, 0, "AX=%5.2f", player.acceleration.x);
 
 		Novice::DrawLine(WIN_WIDTH / 2, 0, WIN_WIDTH / 2, WIN_HEIGHT, WHITE);
 
