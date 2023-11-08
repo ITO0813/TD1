@@ -1,6 +1,54 @@
 #include <Novice.h>
 
-const char kWindowTitle[] = "GC1D_03_イトウヒビキ_タイトル";
+const char kWindowTitle[] = "No.5248_タイトル";
+
+enum scene {
+	titlescene,
+	mainscene,
+	clearscene,
+	gameoverscene
+};
+
+int Titlescene(char keys[], char preKeys[]) {
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, RED, kFillModeSolid);
+
+	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
+		return mainscene;
+	} else {
+		return titlescene;
+	}
+
+}
+
+int Mainscene(char keys[], char preKeys[]) {
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, WHITE, kFillModeSolid);
+
+	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
+		return clearscene;
+	} else {
+		return mainscene;
+	}
+}
+
+int Clearscene(char keys[], char preKeys[]) {
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, RED, kFillModeSolid);
+
+	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
+		return gameoverscene;
+	} else {
+		return clearscene;
+	}
+}
+
+int Gameoverscene(char keys[], char preKeys[]) {
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLUE, kFillModeSolid);
+
+	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
+		return titlescene;
+	} else {
+		return gameoverscene;
+	}
+}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -11,6 +59,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
+
+	int scene;
+	scene = titlescene;
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -25,6 +76,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		int nextScene = scene;
+
+		if (scene==titlescene) {
+			nextScene = Titlescene(keys, preKeys);
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
+
+		if (scene == mainscene) {
+			nextScene = Mainscene(keys, preKeys);
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
+
+		if (scene == clearscene) {
+			nextScene = Clearscene(keys, preKeys);
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
+
+		if (scene == gameoverscene) {
+			nextScene = Gameoverscene(keys, preKeys);
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
 		///
 		/// ↑更新処理ここまで
 		///
