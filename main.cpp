@@ -57,6 +57,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int playerTexture = Novice::LoadTexture("white1x1.png");
 
+	unsigned int playerColor = WHITE;
+
 
 
 	// キー入力結果を受け取る箱
@@ -76,17 +78,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		if (player.pos.x >= WIN_WIDTH / 2) {
+		if (mousePosX >= WIN_WIDTH / 2) {
 			isPlayerInTheRight = true;
 			isPlayerInTheLeft = false;
 		}
-		else if (player.pos.x < WIN_WIDTH / 2) {
+		else if (mousePosX < WIN_WIDTH / 2) {
 			isPlayerInTheRight = false;
 			isPlayerInTheLeft = true;
 		}
 
+		if (isPlayerInTheLeft) {
+			playerColor = RED;
+		}
 
-
+		if (isPlayerInTheRight) {
+			playerColor = WHITE;
+		}
 
 		player.pos.x += player.speed.x;
 
@@ -155,7 +162,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		//Novice::ScreenPrintf(0, 0, "AX=%5.2f", player.acceleration.x);
+		Novice::ScreenPrintf(0, 0, "LEFT FLAG=%d", isPlayerInTheLeft);
+
+		Novice::ScreenPrintf(0, 50, "RIGHT FLAG=%d", isPlayerInTheRight);
 
 		Novice::DrawLine(WIN_WIDTH / 2, 0, WIN_WIDTH / 2, WIN_HEIGHT, RED);
 		Novice::DrawLine(furthermoreASL1, 0, furthermoreASL1, WIN_HEIGHT, WHITE);
@@ -173,7 +182,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(player.leftBottom.y),
 			int(player.rightBottom.x),
 			int(player.rightBottom.y),
-			0, 0, 1, 1, playerTexture, WHITE
+			0, 0, 1, 1, playerTexture, playerColor
 
 
 		);
