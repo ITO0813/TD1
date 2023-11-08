@@ -17,7 +17,6 @@ int Titlescene(char keys[], char preKeys[]) {
 	} else {
 		return titlescene;
 	}
-
 }
 
 int Mainscene(char keys[], char preKeys[]) {
