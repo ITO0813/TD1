@@ -32,7 +32,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Quad player = {
 		{640,360},
-		16,16,
+		32,32,
 		{player.pos.x - player.halfWidth,player.pos.y - player.halfHeight},
 		{player.pos.x + player.halfWidth,player.pos.y - player.halfHeight},
 		{player.pos.x - player.halfWidth,player.pos.y + player.halfHeight},
@@ -55,10 +55,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	bool isPlayerInTheLeft = false;
 	bool isPlayerInTheRight = false;
 
-	int playerTexture = Novice::LoadTexture("white1x1.png");
 
 	unsigned int playerColor = WHITE;
 
+	int playerAnimationTimer = 0;
+	int playerAnimationIndex = 0;
+
+	int rightTexture[4] = {
+		Novice::LoadTexture("./Resources/player/PLAYER1.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER2.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER3.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER4.png"),
+	};
 
 
 	// キー入力結果を受け取る箱
@@ -77,6 +85,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+
+		playerAnimationTimer++;
+
+		if (playerAnimationTimer % 15 == 0) {
+			playerAnimationIndex++;
+			if (playerAnimationIndex > 3) {
+				playerAnimationIndex = 0;
+			}
+		}
+
+
 
 		if (mousePosX >= WIN_WIDTH / 2) {
 			isPlayerInTheRight = true;
@@ -182,9 +201,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(player.leftBottom.y),
 			int(player.rightBottom.x),
 			int(player.rightBottom.y),
-			0, 0, 1, 1, playerTexture, playerColor
-
-
+			0, 0, 16, 16, rightTexture[playerAnimationIndex], playerColor
 		);
 
 		///
