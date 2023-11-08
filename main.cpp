@@ -23,7 +23,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	int posX = 0;
-	int posY = 0;
+	int posY = 360;
 	int posW = 50;
 	int posH = 50;
 	int posrad = 1;
@@ -73,6 +73,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::DrawBox(playerScroll - posrad, posY - posrad, posW, posH, 0.0, WHITE, kFillModeSolid);
 
+		Novice::ScreenPrintf(0, 0, "%d", posX);
 		///
 		/// ↑描画処理ここまで
 		///
