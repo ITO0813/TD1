@@ -12,6 +12,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
+	const int World_Width = 1280 * 4;
+	const int WidthMax = 4;
+
+	int backgroundX[WidthMax]{
+	    0,
+	    1280 * 1,
+	    1280 * 2,
+	    1280 * 3,
+	};
+
+	int posX = 0;
+	int posY = 0;
+	int posW = 50;
+	int posH = 50;
+	int posrad = 1;
+	int speed = 10;
+	int ScrollX = posX + posrad;
+	int playerScroll = posX - ScrollX;
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -25,6 +44,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		posX += speed;
+
+		if (posX < 0 + posrad) {
+			posX = 0 + posrad;
+		}
+		if (posX > World_Width - posrad) {
+			posX = World_Width - posrad;
+		}
+
+		ScrollX = posX + posrad;
+
+		if (ScrollX < 0) {
+			ScrollX = 0;
+		}
+		if (ScrollX > World_Width - 1280) {
+			ScrollX = World_Width - 1280;
+		}
+		playerScroll = posX - ScrollX;
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -32,6 +70,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		Novice::DrawBox(playerScroll - posrad, posY - posrad, posW, posH, 0.0, WHITE, kFillModeSolid);
 
 		///
 		/// ↑描画処理ここまで
