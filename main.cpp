@@ -30,7 +30,7 @@ int Mainscene(char keys[], char preKeys[]) {
 }
 
 int Clearscene(char keys[], char preKeys[]) {
-	Novice::DrawBox(0, 0, 50, 50, 0.0f, RED, kFillModeSolid);
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLACK, kFillModeSolid);
 
 	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 		return gameoverscene;
@@ -84,21 +84,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
-		if (scene == mainscene) {
+		else if (scene == mainscene) {
 			nextScene = Mainscene(keys, preKeys);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
 		}
 
-		if (scene == clearscene) {
+		else if (scene == clearscene) {
 			nextScene = Clearscene(keys, preKeys);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
 		}
 
-		if (scene == gameoverscene) {
+		else if (scene == gameoverscene) {
 			nextScene = Gameoverscene(keys, preKeys);
 		}
 		if (scene != nextScene) {
