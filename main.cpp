@@ -283,9 +283,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 
 				particle[i].speed.x = float(rand() % 5);
-				particle[i].speed.y = float(rand() % 7 - 0);
-				particle[i].pos.x -= particle[i].speed.x;
-				particle[i].pos.y -= particle[i].speed.y;
+				particle[i].speed.y = float(rand() % 5 - 0);
+
+				if (isMouseInTheRight == true) {
+					particle[i].pos.x -= particle[i].speed.x;
+					particle[i].pos.y -= particle[i].speed.y;
+				}
+				else {
+					particle[i].pos.x += particle[i].speed.x;
+					particle[i].pos.y -= particle[i].speed.y;
+				}
+
 			}
 
 			//パーティクルの出現範囲
