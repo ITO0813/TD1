@@ -16,13 +16,22 @@ int Titlescene(char keys[], char preKeys[]) {
 	Novice::DrawBox(0, 0, 50, 50, 0.0f, RED, kFillModeSolid);
 
 	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
-		return mainscene;
+		return trialscene;
 	} else {
 		return titlescene;
 	}
 }
 
-int Trialscene
+// チュートリアルシーン
+int Trialscene(char keys[], char preKeys[]) {
+	Novice::DrawBox(0, 0, 50, 50, 0.0f, GREEN, kFillModeSolid);
+
+	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
+		return mainscene;
+	} else {
+		return trialscene;
+	}
+}
 
 // メインシーン
 int Mainscene(char keys[], char preKeys[]) {
@@ -94,6 +103,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
+		//チュートリアルシーンの時
+		else if (scene == trialscene) {
+			nextScene = Trialscene(keys, preKeys);
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
+
 		// メインシーンの時
 		else if (scene == mainscene) {
 			nextScene = Mainscene(keys, preKeys);
@@ -110,13 +127,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
-		// がーむオーバーシーンの時	
+		// ゲームオーバーシーンの時	
 		else if (scene == gameoverscene) {
 			nextScene = Gameoverscene(keys, preKeys);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
 		}
+
 		///
 		/// ↑更新処理ここまで
 		///
