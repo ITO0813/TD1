@@ -34,8 +34,8 @@ int Trialscene(char keys[], char preKeys[]) {
 }
 
 // メインシーン
-int Mainscene(char keys[], char preKeys[]) {
-	Novice::DrawBox(0, 0, 50, 50, 0.0f, WHITE, kFillModeSolid);
+int Mainscene(char keys[], char preKeys[],int mainbackgroundHandle) {
+	Novice::DrawSprite(0, 0, mainbackgroundHandle, 1, 1, 0.0f, WHITE);
 
 	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 		return clearscene;
@@ -80,6 +80,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int scene;
 	scene = titlescene;
 
+	int mainbackgroundHandle = Novice::LoadTexture("./Title1.png");
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -113,7 +115,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// メインシーンの時
 		else if (scene == mainscene) {
-			nextScene = Mainscene(keys, preKeys);
+			nextScene = Mainscene(keys, preKeys, mainbackgroundHandle);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
