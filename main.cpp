@@ -1,4 +1,6 @@
 #include <Novice.h>
+#include<stdlib.h>
+#include<time.h>
 
 const char kWindowTitle[] = "GC1D_03_イトウヒビキ_タイトル";
 
@@ -19,7 +21,7 @@ struct Quad {
 	Vector2 speed1;
 	Vector2 speed2;
 	Vector2 speed3;
-	//Vector2 acceleration;//加速度
+
 };
 
 //スクリーン座標変換用の関数
@@ -58,25 +60,60 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//スクリーン座標に変換した値を格納する変数
 	Vector2 scsPlayerPos = ToScreen(player.pos);
-	Vector2 scsLeftTop;
-	Vector2 scsRightTop;
-	Vector2 scsLeftBottom;
-	Vector2 scsRightBottom;
+	Vector2 scsLeftTop = ToScreen(player.leftTop);
+	Vector2 scsRightTop = ToScreen(player.rightTop);
+	Vector2 scsLeftBottom = ToScreen(player.leftBottom);
+	Vector2 scsRightBottom = ToScreen(player.rightBottom);
+
+	const int ELLIPSE_NUM_MAX = 500;
+
+	struct Particle {
+		Vector2 pos;//particleの出現位置
+		int radius;
+		Vector2 speed;
+		bool isAppear;
+		int moveTimer;
+		Vector2 acceleration;
+	};
+
+	Particle particle[ELLIPSE_NUM_MAX];
+	for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
+		particle[i].pos.x = scsLeftBottom.x;
+		particle[i].pos.y = scsLeftBottom.y;
+		particle[i].radius = 4;
+		particle[i].speed.x = 0;
+		particle[i].speed.y = 0;
+		particle[i].isAppear = false;
+		particle[i].moveTimer = 30;
+		particle[i].acceleration.x = 0.2f;
+		particle[i].acceleration.y = 0.2f;
+
+	}
+
+	int particleCoolTimer = 10;
+
+	//float randomAccelX = float(rand() %5);
+	//float randomAccelY= float(rand() %5);
+
+	unsigned int currentTime = int(time(nullptr));
+	srand(currentTime);
 
 	//マウスカーソルの座標取得用変数
 	int mousePosX = 0;
 	int mousePosY = 0;
 
+	const int lineWide = 213;
+
 	//画面中央を基準としてスピードを変える
 	int accelerateStartLine = WIN_WIDTH / 2;//略称ASL
 
 	//画面左エリア
-	int furthermoreASL1 = accelerateStartLine + 213;
-	int furthermoreASL2 = furthermoreASL1 + 213;
+	int furthermoreASL1 = accelerateStartLine + lineWide;
+	int furthermoreASL2 = furthermoreASL1 + lineWide;
 
 	//画面右エリア
-	int furthermoreASL3 = accelerateStartLine - 213;
-	int furthermoreASL4 = furthermoreASL3 - 213;
+	int furthermoreASL3 = accelerateStartLine - lineWide;
+	int furthermoreASL4 = furthermoreASL3 - lineWide;
 
 	//マウスカーソルが中央線に対して左右どちらにいるかを判別する為のフラグ
 	bool isMouseInTheLeft = false;
@@ -116,8 +153,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 
-
-
+		//===========================================================================
+		//自機の更新処理
+		//===========================================================================
 		playerAnimationTimer++;
 
 		//15フレーム毎に画像が切り替わる
@@ -203,6 +241,62 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		scsLeftBottom = ToScreen(player.leftBottom);
 		scsRightBottom = ToScreen(player.rightBottom);
 
+		//===========================================================================
+		//パーティクルの更新処理
+		//===========================================================================
+
+		//i番目の玉が出ていなかったらプレイヤーの足元に出現させる
+		if (particleCoolTimer > 0) {
+			particleCoolTimer--;
+		}
+		else {
+			particleCoolTimer = 2;//値によって出現間隔が変わる
+		}
+
+		if (particleCoolTimer <= 0) {
+			for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
+				if (particle[i].isAppear == false) {
+
+					particle[i].isAppear = true;
+					//particle[i].acceleration.x = randomAccelX;
+					//particle[i].acceleration.y = 0.2f;
+					particle[i].pos.x = scsLeftBottom.x + 30;
+					particle[i].pos.y = scsLeftBottom.y;
+					break;
+				}
+			}
+		}
+
+
+
+		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
+
+
+
+			if (particle[i].isAppear == true) {
+
+				if (particle[i].moveTimer > 0) {
+					particle[i].moveTimer--;
+				}
+				else if (particle[i].moveTimer == 0) {
+					particle[i].moveTimer = 30;
+				}
+
+				particle[i].speed.x = float(rand() % 5);
+				particle[i].speed.y = float(rand() % 7 - 0);
+				particle[i].pos.x -= particle[i].speed.x;
+				particle[i].pos.y -= particle[i].speed.y;
+			}
+
+			//パーティクルの出現範囲
+			if (particle[i].moveTimer == 0) {
+				particle[i].isAppear = false;
+				particle[i].speed.x = 0;
+				particle[i].speed.y = 0;
+			}
+		}
+
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -233,6 +327,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(scsRightBottom.y),
 			0, 0, 16, 16, rightTexture[playerAnimationIndex], playerColor
 		);
+
+		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
+			if (particle[i].isAppear == true) {
+				Novice::DrawEllipse
+				(
+					(int)particle[i].pos.x,
+					(int)particle[i].pos.y,
+					particle[i].radius,
+					particle[i].radius,
+					0.0f, 0xA0522DFF, kFillModeSolid
+				);
+			}
+
+		}
 
 		///
 		/// ↑描画処理ここまで
