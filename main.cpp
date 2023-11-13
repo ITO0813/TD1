@@ -16,7 +16,9 @@ struct Quad {
 	Vector2 rightTop;
 	Vector2 leftBottom;
 	Vector2 rightBottom;
-	Vector2 speed;
+	Vector2 speed1;
+	Vector2 speed2;
+	Vector2 speed3;
 	//Vector2 acceleration;//加速度
 };
 
@@ -48,8 +50,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{player.pos.x + player.halfWidth,player.pos.y + player.halfHeight},
 		{player.pos.x - player.halfWidth,player.pos.y - player.halfHeight},
 		{player.pos.x + player.halfWidth,player.pos.y - player.halfHeight},
-		{0,0},
-		//{0,0},
+		{3,0},
+		{6,0},
+		{9,0},
 
 	};
 
@@ -144,7 +147,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerColor = WHITE;
 		}
 
-		player.pos.x += player.speed.x;
 
 		player.leftTop.x = player.pos.x - player.halfWidth;
 		player.leftTop.y = player.pos.y + player.halfHeight;
@@ -163,37 +165,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::GetMousePosition(&mousePosX, &mousePosY);
 
 		if (mousePosX >= WIN_WIDTH / 2 && mousePosX < furthermoreASL1) {
-			player.speed.x = 3;
+			player.pos.x += player.speed1.x;
 		}
 		else if (mousePosX >= furthermoreASL1 && mousePosX < furthermoreASL2) {
-			player.speed.x = 6;
-
+			player.pos.x += player.speed2.x;
 		}
 		else if (mousePosX >= furthermoreASL2) {
-			player.speed.x = 9;
-
+			player.pos.x += player.speed3.x;
 		}
 		else if (mousePosX < WIN_WIDTH / 2 && mousePosX > furthermoreASL3) {
-			player.speed.x = -3;
-
+			player.pos.x -= player.speed1.x;
 		}
 		else if (mousePosX <= furthermoreASL3 && mousePosX > furthermoreASL4) {
-			player.speed.x = -6;
+			player.pos.x -= player.speed2.x;
 
 		}
 		else if (mousePosX <= furthermoreASL4) {
-			player.speed.x = -9;
+			player.pos.x -= player.speed3.x;
 
 		}
 
 		//プレイヤーが画面外にいかないようにする処理
 		if (player.pos.x < player.halfWidth) {
-			player.speed.x = 0;
+
 			player.pos.x = player.halfWidth;
 
 		}
 		else if (player.pos.x > WIN_WIDTH - player.halfWidth) {
-			player.speed.x = 0;
+
 			player.pos.x = WIN_WIDTH - player.halfWidth;
 		}
 
