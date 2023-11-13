@@ -2,13 +2,16 @@
 
 const char kWindowTitle[] = "No.5248_タイトル";
 
+//シーンの定義
 enum scene {
 	titlescene,
+	trialscene,
 	mainscene,
 	clearscene,
 	gameoverscene
 };
 
+//タイトルシーン
 int Titlescene(char keys[], char preKeys[]) {
 	Novice::DrawBox(0, 0, 50, 50, 0.0f, RED, kFillModeSolid);
 
@@ -19,6 +22,9 @@ int Titlescene(char keys[], char preKeys[]) {
 	}
 }
 
+int Trialscene
+
+// メインシーン
 int Mainscene(char keys[], char preKeys[]) {
 	Novice::DrawBox(0, 0, 50, 50, 0.0f, WHITE, kFillModeSolid);
 
@@ -29,6 +35,7 @@ int Mainscene(char keys[], char preKeys[]) {
 	}
 }
 
+// クリアシーン
 int Clearscene(char keys[], char preKeys[]) {
 	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLACK, kFillModeSolid);
 
@@ -39,6 +46,7 @@ int Clearscene(char keys[], char preKeys[]) {
 	}
 }
 
+// ゲームオーバーシーン
 int Gameoverscene(char keys[], char preKeys[]) {
 	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLUE, kFillModeSolid);
 
@@ -59,6 +67,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
+	//最初のシーンの定義
 	int scene;
 	scene = titlescene;
 
@@ -77,6 +86,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		int nextScene = scene;
 
+		//タイトルシーンの時
 		if (scene==titlescene) {
 			nextScene = Titlescene(keys, preKeys);
 		}
@@ -84,6 +94,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
+		// メインシーンの時
 		else if (scene == mainscene) {
 			nextScene = Mainscene(keys, preKeys);
 		}
@@ -91,6 +102,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
+		// クリアシーンの時
 		else if (scene == clearscene) {
 			nextScene = Clearscene(keys, preKeys);
 		}
@@ -98,6 +110,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
+		// がーむオーバーシーンの時	
 		else if (scene == gameoverscene) {
 			nextScene = Gameoverscene(keys, preKeys);
 		}
@@ -111,6 +124,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		Novice::ScreenPrintf(100, 100, "%d", scene);
 
 		///
 		/// ↑描画処理ここまで
