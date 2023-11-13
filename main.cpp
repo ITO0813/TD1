@@ -45,8 +45,8 @@ int Mainscene(char keys[], char preKeys[],int mainbackgroundHandle) {
 }
 
 // クリアシーン
-int Clearscene(char keys[], char preKeys[]) {
-	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLACK, kFillModeSolid);
+int Clearscene(char keys[], char preKeys[], int clearbackgroundHandle) {
+	Novice::DrawSprite(0, 0, clearbackgroundHandle, 1, 1, 0.0f, WHITE);
 
 	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 		return gameoverscene;
@@ -56,8 +56,8 @@ int Clearscene(char keys[], char preKeys[]) {
 }
 
 // ゲームオーバーシーン
-int Gameoverscene(char keys[], char preKeys[]) {
-	Novice::DrawBox(0, 0, 50, 50, 0.0f, BLUE, kFillModeSolid);
+int Gameoverscene(char keys[], char preKeys[], int gameoverbackgroundHandle) {
+	Novice::DrawSprite(0, 0, gameoverbackgroundHandle, 1, 1, 0.0f, WHITE);
 
 	if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 		return titlescene;
@@ -80,7 +80,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int scene;
 	scene = titlescene;
 
-	int mainbackgroundHandle = Novice::LoadTexture("./Title1.png");
+	int mainbackgroundHandle = Novice::LoadTexture("./images/Title1.png");
+	int clearbackgroundHandle = Novice::LoadTexture("./images/Clear.png");
+	int gameoverbackgroundHandle = Novice::LoadTexture("./images/OVER.png");
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -123,7 +125,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// クリアシーンの時
 		else if (scene == clearscene) {
-			nextScene = Clearscene(keys, preKeys);
+			nextScene = Clearscene(keys, preKeys, clearbackgroundHandle);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
@@ -131,7 +133,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// ゲームオーバーシーンの時	
 		else if (scene == gameoverscene) {
-			nextScene = Gameoverscene(keys, preKeys);
+			nextScene = Gameoverscene(keys, preKeys, gameoverbackgroundHandle);
 		}
 		if (scene != nextScene) {
 			scene = nextScene;
