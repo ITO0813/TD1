@@ -130,18 +130,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	//const int World_Width = 1280 * 4;
-	const int WidthMax = 4;
-
-	int backgroundX[WidthMax]{
-	    0,
-	    1280 * 1,
-	    1280 * 2,
-	    1280 * 3,
-	};
-
-
-
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
