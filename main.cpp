@@ -95,9 +95,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int particleCoolTimer = 10;
 
-	//float randomAccelX = float(rand() %5);
-	//float randomAccelY= float(rand() %5);
-
 	unsigned int currentTime = int(time(nullptr));
 	srand(currentTime);
 
@@ -346,7 +343,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//===========================================================================
 		//残像の更新処理
 		//===========================================================================
-
 		timer++;
 
 		if (timer > 100) {
@@ -361,13 +357,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 				isDraw[i - 1] = 0;
 			}
-
-
-
 		}
-
-
-
 		///
 		/// ↑更新処理ここまで
 		///
@@ -409,10 +399,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(scsRightBottom.y),
 			0, 0, 16, 16, playerCurrentTexture, playerColor
 		);
-
-
-
-
 
 		//パーティクル
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
