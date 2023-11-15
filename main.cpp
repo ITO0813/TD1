@@ -140,10 +140,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    1280 * 3,
 	};
 
-	//for (int i = 0; i < WidthMax; i++) {
-	//	Novice::LoadTexture("");
-	//};
-
 	
 
 	// ウィンドウの×ボタンが押されるまでループ
