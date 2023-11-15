@@ -130,7 +130,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	const int World_Width = 1280 * 4;
+	//const int World_Width = 1280 * 4;
 	const int WidthMax = 4;
 
 	int backgroundX[WidthMax]{
@@ -144,14 +144,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//	Novice::LoadTexture("");
 	//};
 
-	int posX = 0;
-	int posY = 360;
-	int posW = 50;
-	int posH = 50;
-	int posrad = 1;
-	int speed = 10;
-	int ScrollX = posX + posrad;
-	int playerScroll = posX - ScrollX;
+	
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
