@@ -41,16 +41,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Novice::Initialize(kWindowTitle, WIN_WIDTH, WIN_HEIGHT);
 
 	Quad player = {
-	    {640,	                         32	                          },
-	    32,
-	    32,
+	    {640,32},32,32,
 	    {player.pos.x - player.halfWidth, player.pos.y + player.halfHeight},
 	    {player.pos.x + player.halfWidth, player.pos.y + player.halfHeight},
 	    {player.pos.x - player.halfWidth, player.pos.y - player.halfHeight},
 	    {player.pos.x + player.halfWidth, player.pos.y - player.halfHeight},
-	    {3,	                           0	                           },
-	    {6,	                           0	                           },
-	    {9,	                           0	                           },
+	    {9,0},
+	    {3,0},
+	    {6,0},
 	};
 
 	// スクリーン座標に変換した値を格納する変数
