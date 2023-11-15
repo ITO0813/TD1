@@ -270,6 +270,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			scene = nextScene;
 		}
 
+
 		///
 		/// ↑更新処理ここまで
 		///
