@@ -86,8 +86,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int rightBottomX = 0;
 	int rightBottomY = 0;
 
-	int blockImges1 = Novice::LoadTexture("./images/block4.png"); // ブロックの画像 　　マップ番号が1の時
-	int blockImges2 = Novice::LoadTexture("./images/Obstacle.png"); // ブロックの画像　 マップ番号が2の時
+	int blockImges1 =
+	    Novice::LoadTexture("./images/block4.png"); // ブロックの画像 　　マップ番号が1の時
+	int blockImges2 =
+	    Novice::LoadTexture("./images/Obstacle.png"); // ブロックの画像　 マップ番号が2の時
 	int blockSize = 32;
 
 	int rightTopX = 0;
