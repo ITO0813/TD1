@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 const char kWindowTitle[] = "GC1D_03_イトウヒビキ_タイトル";
 
 struct Vector2 {
@@ -118,19 +119,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// プレイヤーの右向き画像
 	int rightTexture[4] = {
-	    Novice::LoadTexture("./Resources/player/PLAYER1.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER2.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER3.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER4.png"),
+	    Novice::LoadTexture("./images/player/PLAYER1.png"),
+	    Novice::LoadTexture("./images/player/PLAYER2.png"),
+	    Novice::LoadTexture("./images/player/PLAYER3.png"),
+	    Novice::LoadTexture("./images/player/PLAYER4.png"),
 	};
 	int playerRights[4] = {rightTexture[0], rightTexture[1], rightTexture[2], rightTexture[3]};
 
 	// プレイヤーの左向き画像
 	int leftTexture[4] = {
-	    Novice::LoadTexture("./Resources/player/PLAYER1.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER2.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER3.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER4.png"),
+	    Novice::LoadTexture("./images/player/PLAYER1.png"),
+	    Novice::LoadTexture("./images/player/PLAYER2.png"),
+	    Novice::LoadTexture("./images/player/PLAYER3.png"),
+	    Novice::LoadTexture("./images/player/PLAYER4.png"),
 	};
 	int playerLefts[4] = {leftTexture[0], leftTexture[1], leftTexture[2], leftTexture[3]};
 
