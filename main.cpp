@@ -22,6 +22,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    1280 * 3,
 	};
 
+	//for (int i = 0; i < WidthMax; i++) {
+	//	Novice::LoadTexture("");
+	//};
+
 	int posX = 0;
 	int posY = 360;
 	int posW = 50;
