@@ -130,8 +130,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		ball.position.y += ball.speed.y; // プレイヤーに重力を加算
 		rightBottomX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
-		rightBottomY =
-		    ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
+		rightBottomY = ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
 
 		leftBottomX = ((int)ball.position.x - (int)ball.radius) / blockSize;
 		leftBottomY = ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
@@ -161,21 +160,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
-		// Novice::DrawSprite(0, 0, grapHandle, 1, 1, 0.0f, WHITE);
-		Novice::DrawEllipse(
-		    (int)ball.position.x, (int)ball.position.y, (int)ball.radius, (int)ball.radius, 0.0f,
-		    RED, kFillModeSolid);
-		// Novice::DrawSprite((int)ball.position.x, (int)ball.position.y, playerImage, 1, 1, 0.0f,
+		
+		Novice::DrawEllipse((int)ball.position.x, (int)ball.position.y, (int)ball.radius, (int)ball.radius, 0.0f,RED, kFillModeSolid);
+		
 		// kFillModeSolid);//プレイヤー
 		for (int i = 0; i < mapY; i++) {
 			for (int p = 0; p < mapX; p++) {
 				if (map[i][p] == 1) { // マップ番号が1の時
-					Novice::DrawSprite(
-					    (p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
+					Novice::DrawSprite((p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
 				}
 				if (map[i][p] == 2) { // マップ番号が2の時
-					Novice::DrawSprite(
-					    (p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
+					Novice::DrawSprite((p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
 				}
 			}
 		}
