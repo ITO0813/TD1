@@ -140,7 +140,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    1280 * 3,
 	};
 
-	
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -304,9 +304,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::DrawLine(furthermoreASL3, 0, furthermoreASL3, WIN_HEIGHT, WHITE);
 		Novice::DrawLine(furthermoreASL4, 0, furthermoreASL4, WIN_HEIGHT, WHITE);
 
-		Novice::DrawQuad(
-		    int(scsLeftTop.x), int(scsLeftTop.y), int(scsRightTop.x), int(scsRightTop.y),
-		    int(scsLeftBottom.x), int(scsLeftBottom.y), int(scsRightBottom.x),
+		Novice::DrawQuad(int(scsLeftTop.x), int(scsLeftTop.y), int(scsRightTop.x), int(scsRightTop.y),int(scsLeftBottom.x), int(scsLeftBottom.y), int(scsRightBottom.x),
 		    int(scsRightBottom.y), 0, 0, 16, 16, rightTexture[playerAnimationIndex], playerColor);
 
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
