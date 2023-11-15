@@ -24,6 +24,8 @@ struct Quad {
 
 };
 
+
+
 //スクリーン座標変換用の関数
 Vector2 ToScreen(Vector2 world)
 {
@@ -65,10 +67,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector2 scsLeftBottom = ToScreen(player.leftBottom);
 	Vector2 scsRightBottom = ToScreen(player.rightBottom);
 
+	//一度に存在できる粒子の最大数
 	const int ELLIPSE_NUM_MAX = 500;
 
 	struct Particle {
-		Vector2 pos;//particleの出現位置
+		Vector2 center;
 		int radius;
 		Vector2 speed;
 		bool isAppear;
@@ -78,9 +81,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Particle particle[ELLIPSE_NUM_MAX];
 	for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
-		particle[i].pos.x = scsLeftBottom.x;
-		particle[i].pos.y = scsLeftBottom.y;
-		particle[i].radius = 4;
+		particle[i].center.x = scsLeftBottom.x;
+		particle[i].center.y = scsLeftBottom.y;
+		particle[i].radius = 2;
 		particle[i].speed.x = 0;
 		particle[i].speed.y = 0;
 		particle[i].isAppear = false;
@@ -121,19 +124,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	unsigned int playerColor = WHITE;
 
-	//インデックスの値を変える間隔を調整するための変数
-	int playerAnimationTimer = 0;
+	enum Direction {
+		LEFT,//0
+		RIGHT,//1
+	};
 
-	//インデックスの値によって描画される画像が変わる
-	int playerAnimationIndex = 0;
-
+	//プレイヤーの右向き画像
 	int rightTexture[4] = {
 		Novice::LoadTexture("./Resources/player/PLAYER1.png"),
 		Novice::LoadTexture("./Resources/player/PLAYER2.png"),
 		Novice::LoadTexture("./Resources/player/PLAYER3.png"),
 		Novice::LoadTexture("./Resources/player/PLAYER4.png"),
 	};
+	int playerRights[4] = { rightTexture[0],rightTexture[1],rightTexture[2],rightTexture[3] };
 
+
+	//プレイヤーの左向き画像
+	int leftTexture[4] = {
+		Novice::LoadTexture("./Resources/player/PLAYER1.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER2.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER3.png"),
+		Novice::LoadTexture("./Resources/player/PLAYER4.png"),
+	};
+	int playerLefts[4] = { leftTexture[0],leftTexture[1],leftTexture[2],leftTexture[3] };
+
+	int playerDirection = Direction::RIGHT;//プレイヤーの向き
+
+	int playerCurrentTexture = playerRights[0];//現在のプレイヤーの画像
+
+	//インデックスの値を変える間隔を調整するための変数
+	int playerAnimationTimer = 0;
+
+	//インデックスの値によって描画される画像が変わる
+	int playerAnimationIndex = 0;
+
+	//残像処理用変数
+	const int afterImageLength = 10;
+	int isDraw[afterImageLength] = {};
+	int afterImageX[afterImageLength] = {};
+
+	int timer = 0;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -166,15 +196,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
-
-
+		//マウスの座標が画面中央よりどちらにいるかによって方向管理フラグが切り替わる
 		if (mousePosX >= WIN_WIDTH / 2) {
 			isMouseInTheRight = true;
 			isMouseInTheLeft = false;
+			playerDirection = Direction::RIGHT;
 		}
 		else if (mousePosX < WIN_WIDTH / 2) {
 			isMouseInTheRight = false;
 			isMouseInTheLeft = true;
+			playerDirection = Direction::LEFT;
+		}
+
+		//プレイヤーの描画切り替え処理
+		if (playerDirection == Direction::RIGHT) {
+			playerCurrentTexture = playerRights[playerAnimationIndex];
+		}
+		else if (playerDirection == Direction::LEFT) {
+			playerCurrentTexture = playerLefts[playerAnimationIndex];
 		}
 
 		//マウスカーソルの位置によって色が変わる
@@ -192,7 +231,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		player.rightTop.x = player.pos.x + player.halfWidth;
 		player.rightTop.y = player.pos.y + player.halfHeight;
 
-
 		player.leftBottom.x = player.pos.x - player.halfWidth;
 		player.leftBottom.y = player.pos.y - player.halfHeight;
 
@@ -202,6 +240,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//マウスの位置を取得する
 		Novice::GetMousePosition(&mousePosX, &mousePosY);
 
+		//マウスの座標によってスピードが変わる
 		if (mousePosX >= WIN_WIDTH / 2 && mousePosX < furthermoreASL1) {
 			player.pos.x += player.speed1.x;
 		}
@@ -245,12 +284,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//パーティクルの更新処理
 		//===========================================================================
 
-		//i番目の玉が出ていなかったらプレイヤーの足元に出現させる
+		//i番目の粒子が出ていなかったらプレイヤーの足元に出現させる
 		if (particleCoolTimer > 0) {
 			particleCoolTimer--;
 		}
 		else {
-			particleCoolTimer = 2;//値によって出現間隔が変わる
+			particleCoolTimer = 2;//1秒あたり30個の粒子が出る
 		}
 
 		if (particleCoolTimer <= 0) {
@@ -258,10 +297,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (particle[i].isAppear == false) {
 
 					particle[i].isAppear = true;
-					//particle[i].acceleration.x = randomAccelX;
-					//particle[i].acceleration.y = 0.2f;
-					particle[i].pos.x = scsLeftBottom.x + 30;
-					particle[i].pos.y = scsLeftBottom.y;
+
+					//パーティクルの発生位置を足元に合わせる
+					particle[i].center.x = scsLeftBottom.x + 30;
+					particle[i].center.y = scsLeftBottom.y;
 					break;
 				}
 			}
@@ -271,10 +310,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
 
-
-
 			if (particle[i].isAppear == true) {
 
+				//粒子1個あたりの存在出来る時間(0.5秒)
 				if (particle[i].moveTimer > 0) {
 					particle[i].moveTimer--;
 				}
@@ -282,27 +320,52 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					particle[i].moveTimer = 30;
 				}
 
-				particle[i].speed.x = float(rand() % 5);
+				particle[i].speed.x = float(rand() % 4);
 				particle[i].speed.y = float(rand() % 5 - 0);
 
+				//マウスの座標が中央より右に位置するときプレイヤの進行方向の反対側に向かってパーティクルが発生する
 				if (isMouseInTheRight == true) {
-					particle[i].pos.x -= particle[i].speed.x;
-					particle[i].pos.y -= particle[i].speed.y;
+					particle[i].center.x -= particle[i].speed.x;
+					particle[i].center.y -= particle[i].speed.y;
 				}
-				else {
-					particle[i].pos.x += particle[i].speed.x;
-					particle[i].pos.y -= particle[i].speed.y;
+				else {//左も同様
+					particle[i].center.x += particle[i].speed.x;
+					particle[i].center.y -= particle[i].speed.y;
 				}
 
 			}
 
-			//パーティクルの出現範囲
+			//タイマーが0になったら粒子を消す
 			if (particle[i].moveTimer == 0) {
 				particle[i].isAppear = false;
 				particle[i].speed.x = 0;
 				particle[i].speed.y = 0;
 			}
 		}
+
+		//===========================================================================
+		//残像の更新処理
+		//===========================================================================
+
+		timer++;
+
+		if (timer > 100) {
+			timer = 0;
+		}
+
+		for (int i = 0; i <= afterImageLength; i++) {
+			if (timer == 10 * i) {
+
+				afterImageX[i] = (int)player.leftTop.x;
+				isDraw[i] = 1;
+
+				isDraw[i - 1] = 0;
+			}
+
+
+
+		}
+
 
 
 		///
@@ -313,15 +376,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::ScreenPrintf(0, 0, "LEFT FLAG=%d", isMouseInTheLeft);
+		Novice::ScreenPrintf(0, 0, "timer=%d", timer);
 
-		Novice::ScreenPrintf(0, 50, "RIGHT FLAG=%d", isMouseInTheRight);
 
 		Novice::DrawLine(WIN_WIDTH / 2, 0, WIN_WIDTH / 2, WIN_HEIGHT, RED);
 		Novice::DrawLine(furthermoreASL1, 0, furthermoreASL1, WIN_HEIGHT, WHITE);
 		Novice::DrawLine(furthermoreASL2, 0, furthermoreASL2, WIN_HEIGHT, WHITE);
 		Novice::DrawLine(furthermoreASL3, 0, furthermoreASL3, WIN_HEIGHT, WHITE);
 		Novice::DrawLine(furthermoreASL4, 0, furthermoreASL4, WIN_HEIGHT, WHITE);
+
+
+		//残像
+		for (int i = 0; i < afterImageLength; i++) {
+			if (isDraw[i] == 1) {
+				Novice::DrawSpriteRect(
+					int(afterImageX[i]),
+					int(scsLeftTop.y),
+					0, 0, 16, 16, playerCurrentTexture, 4, 4, 0.0f, BLUE
+				);
+			}
+		}
 
 		Novice::DrawQuad
 		(
@@ -333,18 +407,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(scsLeftBottom.y),
 			int(scsRightBottom.x),
 			int(scsRightBottom.y),
-			0, 0, 16, 16, rightTexture[playerAnimationIndex], playerColor
+			0, 0, 16, 16, playerCurrentTexture, playerColor
 		);
 
+
+
+
+
+		//パーティクル
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
 			if (particle[i].isAppear == true) {
 				Novice::DrawEllipse
 				(
-					(int)particle[i].pos.x,
-					(int)particle[i].pos.y,
+					(int)particle[i].center.x,
+					(int)particle[i].center.y,
 					particle[i].radius,
 					particle[i].radius,
-					0.0f, 0xA0522DFF, kFillModeSolid
+					0.0f, 0x50FA23FF, kFillModeSolid
 				);
 			}
 
