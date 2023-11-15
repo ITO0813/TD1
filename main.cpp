@@ -284,12 +284,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (int i = 0; i < mapY; i++) {
 				for (int p = 0; p < mapX; p++) {
 					if (map[i][p] == 1) { // マップ番号が1の時
-						Novice::DrawSprite(
-						    (p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
+						Novice::DrawSprite((p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
 					}
 					if (map[i][p] == 2) { // マップ番号が2の時
-						Novice::DrawSprite(
-						    (p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
+						Novice::DrawSprite((p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
 					}
 				}
 			}
