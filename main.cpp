@@ -41,16 +41,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Novice::Initialize(kWindowTitle, WIN_WIDTH, WIN_HEIGHT);
 
 	Quad player = {
-	    {640,	                         32	                          },
-	    32,
-	    32,
+	    {640,32},32,32,
 	    {player.pos.x - player.halfWidth, player.pos.y + player.halfHeight},
 	    {player.pos.x + player.halfWidth, player.pos.y + player.halfHeight},
 	    {player.pos.x - player.halfWidth, player.pos.y - player.halfHeight},
 	    {player.pos.x + player.halfWidth, player.pos.y - player.halfHeight},
-	    {3,	                           0	                           },
-	    {6,	                           0	                           },
-	    {9,	                           0	                           },
+	    {3,0},
+	    {6,0},
+	    {9,0},
 	};
 
 	// スクリーン座標に変換した値を格納する変数
@@ -122,10 +120,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerAnimationIndex = 0;
 
 	int rightTexture[4] = {
-	    Novice::LoadTexture("./Resources/player/PLAYER1.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER2.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER3.png"),
-	    Novice::LoadTexture("./Resources/player/PLAYER4.png"),
+	    Novice::LoadTexture("./images/player/PLAYER1.png"),
+	    Novice::LoadTexture("./images/player/PLAYER2.png"),
+	    Novice::LoadTexture("./images/player/PLAYER3.png"),
+	    Novice::LoadTexture("./images/player/PLAYER4.png"),
 	};
 
 	// キー入力結果を受け取る箱
