@@ -21,6 +21,8 @@ struct Quad {
 	Vector2 speed2;
 	Vector2 speed3;
 };
+#include <Vector2.h>
+const char kWindowTitle[] = "GC1D_03_イトウヒビキ_タイトル";
 
 // スクリーン座標変換用の関数
 Vector2 ToScreen(Vector2 world) {
@@ -83,66 +85,160 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	int particleCoolTimer = 10;
+// Windowsアプリでのエントリーポイント(main関数)
+	int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
-	// float randomAccelX = float(rand() %5);
-	// float randomAccelY= float(rand() %5);
+		// float randomAccelX = float(rand() %5);
+		// float randomAccelY= float(rand() %5);
 
-	unsigned int currentTime = int(time(nullptr));
-	srand(currentTime);
+		unsigned int currentTime = int(time(nullptr));
+		srand(currentTime);
+		// キー入力結果を受け取る箱
+		char keys[256] = {0};
+		char preKeys[256] = {0};
+		int mapY = 24; // マップ縦幅
+		// マウスカーソルの座標取得用変数
+		int mousePosX = 0;
+		int mousePosY = 0;
 
-	// マウスカーソルの座標取得用変数
-	int mousePosX = 0;
-	int mousePosY = 0;
+		const int lineWide = 213;
 
-	const int lineWide = 213;
+		// 画面中央を基準としてスピードを変える
+		int accelerateStartLine = WIN_WIDTH / 2; // 略称ASL
+		struct Ball {
+			Vector2 position;
+			Vector2 speed;
+			Vector2 jump;
+		};
 
-	// 画面中央を基準としてスピードを変える
-	int accelerateStartLine = WIN_WIDTH / 2; // 略称ASL
+		int mapY = 24; // マップ縦幅
+		int mapX = 40; // マップ横幅
+		// 当たり判定の変数
+		int leftBottomX = 0;
+		int leftBottomY = 0;
+		int leftTopX = 0;
+		int leftTopY = 0;
+		int rightBottomX = 0;
+		int rightBottomY = 0;
 
-	// 画面左エリア
-	int furthermoreASL1 = accelerateStartLine + lineWide;
-	int furthermoreASL2 = furthermoreASL1 + lineWide;
+		int blockImges1 =
+		    Novice::LoadTexture("./images/block4.png"); // ブロックの画像 　　マップ番号が1の時
+		int blockImges2 =
+		    Novice::LoadTexture("./images/Obstacle.png"); // ブロックの画像　 マップ番号が2の時
+		int blockSize = 32;
+		int blockImges1 =
+		    Novice::LoadTexture("./block4.png"); // ブロックの画像 　　マップ番号が1の時
+		int blockImges2 = Novice::LoadTexture("./Obstacle.png"); // 障害物の画像　 マップ番号が2の時
+		int blockSize = 32;
+		// 変数
+		int mapY = 24; // マップ縦幅
+		int mapX = 40; // マップ横幅
+		// 当たり判定の変数
+		int leftBottomX = 0;
+		int leftBottomY = 0;
+		int leftTopX = 0;
+		int leftTopY = 0;
+		int rightBottomX = 0;
+		int rightBottomY = 0;
 
-	// 画面右エリア
-	int furthermoreASL3 = accelerateStartLine - lineWide;
-	int furthermoreASL4 = furthermoreASL3 - lineWide;
+		int rightTopX = 0;
+		int rightTopY = 0;
+		int isJump = 0;
+		int isFly = 0;
 
-	// マウスカーソルが中央線に対して左右どちらにいるかを判別する為のフラグ
-	bool isMouseInTheLeft = false;
-	bool isMouseInTheRight = false;
+		int Overflag = true; // ゲームオーバーフラグ
+		int map[24][40] = {
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2,
+		     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2,
+		     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		};
 
-	unsigned int playerColor = WHITE;
+		unsigned int playerColor = WHITE;
 
-	// インデックスの値を変える間隔を調整するための変数
-	int playerAnimationTimer = 0;
+		// インデックスの値を変える間隔を調整するための変数
+		int playerAnimationTimer = 0;
 
-	// インデックスの値によって描画される画像が変わる
-	int playerAnimationIndex = 0;
+		// インデックスの値によって描画される画像が変わる
+		int playerAnimationIndex = 0;
 
-	int rightTexture[4] = {
-	    Novice::LoadTexture("./images/player/PLAYER1.png"),
-	    Novice::LoadTexture("./images/player/PLAYER2.png"),
-	    Novice::LoadTexture("./images/player/PLAYER3.png"),
-	    Novice::LoadTexture("./images/player/PLAYER4.png"),
+		int rightTexture[4] = {
+		    Novice::LoadTexture("./images/player/PLAYER1.png"),
+		    Novice::LoadTexture("./images/player/PLAYER2.png"),
+		    Novice::LoadTexture("./images/player/PLAYER3.png"),
+		    Novice::LoadTexture("./images/player/PLAYER4.png"),
+		};
+
+		// キー入力結果を受け取る箱
+		char keys[256] = {0};
+		char preKeys[256] = {0};
 	};
-
-	// キー入力結果を受け取る箱
-	char keys[256] = {0};
-	char preKeys[256] = {0};
-
-	// ウィンドウの×ボタンが押されるまでループ
-	while (Novice::ProcessMessage() == 0) {
-		// フレームの開始
-		Novice::BeginFrame();
-
-		// キー入力を受け取る
-		memcpy(preKeys, keys, 256);
-		Novice::GetHitKeyStateAll(keys);
-
-		///
-		/// ↓更新処理ここから
-		///
-
 		//===========================================================================
 		// 自機の更新処理
 		//===========================================================================
@@ -206,12 +302,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (player.pos.x < player.halfWidth) {
 
 			player.pos.x = player.halfWidth;
-
+		// 当たり判定の変数
+		leftBottomX = ((int)ball.position.x - (int)ball.radius) / blockSize;
+		leftBottomY = ((int)ball.position.y + (int)ball.radius - 1) / blockSize;
+		}
+		rightBottomX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
+		rightBottomY = ((int)ball.position.y + (int)ball.radius - 1) / blockSize;
 		} else if (player.pos.x > WIN_WIDTH - player.halfWidth) {
-
+		else if (scene == trialscene) {
 			player.pos.x = WIN_WIDTH - player.halfWidth;
 		}
-
+		rightTopX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
+		rightTopY = ((int)ball.position.y - (int)ball.radius) / blockSize;
+		if (map[rightTopY][rightTopX] == 0 && map[rightBottomY][rightBottomX] == 0) {
+			ball.speed.x = 2;
+			ball.position.x = ball.position.x + ball.speed.x; // 本体を進める
+		}
+		// メインシーンの時
 		// 中心座標と各頂点をスクリーン座標に変換
 		ToScreen(player.pos);
 		scsLeftTop = ToScreen(player.leftTop);
@@ -229,11 +336,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		} else {
 			particleCoolTimer = 2; // 値によって出現間隔が変わる
 		}
-
+		if (isJump == 0) {
+			if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+				ball.jump.y = -10.8f; // ジャンプ
+				isJump = 1;
+			}
+		} else if (isFly == 0 && isJump == 1) {
+			if (preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
+				ball.jump.y = 0.5f;
+				isFly = 1;
+			}
+		}
+			rightBottomX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
 		if (particleCoolTimer <= 0) {
 			for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
 				if (particle[i].isAppear == false) {
+		ball.speed.y += ball.jump.y; // 重力を加算
 
+		ball.position.y += ball.speed.y; // プレイヤーに重力を加算
+		rightBottomX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
+		rightBottomY =
+		    ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
+				ball.position.x = ball.position.x + ball.speed.x; // 本体を進める
+		leftBottomX = ((int)ball.position.x - (int)ball.radius) / blockSize;
+		leftBottomY = ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
 					particle[i].isAppear = true;
 					// particle[i].acceleration.x = randomAccelX;
 					// particle[i].acceleration.y = 0.2f;
@@ -243,20 +369,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 			}
 		}
-
+				if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
-
+		rightTopX = ((int)ball.position.x + (int)ball.radius - 1) / blockSize;
+		rightTopY = ((int)ball.position.y - (int)ball.radius + (int)ball.speed.y) / blockSize;
+		leftTopX = ((int)ball.position.x - (int)ball.radius) / blockSize;
+		leftTopY = ((int)ball.position.y - (int)ball.radius + (int)ball.speed.y) / blockSize;
+				if (preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
+		if (map[rightTopY][rightTopX] != 0 && map[leftTopY][leftTopX] != 0) {
 			if (particle[i].isAppear == true) {
-
+					isFly = 1;
 				if (particle[i].moveTimer > 0) {
 					particle[i].moveTimer--;
 				} else if (particle[i].moveTimer == 0) {
 					particle[i].moveTimer = 30;
 				}
-
+			ball.speed.y = 0.0f;
+			isJump = 0;
+			isFly = 0;
+		}
+		if (map[rightBottomY][rightBottomX] != 0 && map[leftBottomY][leftBottomX] != 0) {
+			ball.position.y = (rightBottomY * blockSize) - ball.radius;
+			ball.speed.y = 0.0f;
+			isJump = 0;
+			isFly = 0;
+		}
+			    ((int)ball.position.y + (int)ball.radius - 1 + (int)ball.speed.y) / blockSize;
 				particle[i].speed.x = float(rand() % 5);
 				particle[i].speed.y = float(rand() % 5 - 0);
-
+		if (map[rightTopY][rightTopX] == 2 && map[leftTopY][leftTopX] == 2) {
+			leftBottomY =
 				if (isMouseInTheRight == true) {
 					particle[i].pos.x -= particle[i].speed.x;
 					particle[i].pos.y -= particle[i].speed.y;
@@ -272,15 +414,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				particle[i].speed.x = 0;
 				particle[i].speed.y = 0;
 			}
+			ball.speed.y = 0.0f;
+			isJump = 0;
+			isFly = 0;
+			Overflag = false; // ゲームオーバーフラグ
 		}
+		if (map[rightBottomY][rightBottomX] == 2 && map[leftBottomY][leftBottomX] == 2) {
+			ball.position.y = (rightBottomY * blockSize) - ball.radius;
+			ball.speed.y = 0.0f;
+			isJump = 0;
+			isFly = 0;
+			Overflag = false; // ゲームオーバーフラグ
+		}
+		if (Overflag == false) { // ゲームオーバーフラグ
+			ball.position.x = 200;
+			ball.position.y = 200;
+				ball.position.y = (rightBottomY * blockSize) - ball.radius;
+				ball.speed.y = 0.0f;
+				isJump = 0;
+				isFly = 0;
+			}
 
-		///
-		/// ↑更新処理ここまで
-		///
-
-		///
-		/// ↓描画処理ここから
-		///
+		}
+		if (scene != nextScene) {
 
 		Novice::ScreenPrintf(0, 0, "LEFT FLAG=%d", isMouseInTheLeft);
 
@@ -300,9 +456,48 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				Novice::DrawEllipse(
 				    (int)particle[i].pos.x, (int)particle[i].pos.y, particle[i].radius,
 				    particle[i].radius, 0.0f, 0xA0522DFF, kFillModeSolid);
+		Novice::DrawEllipse(
+		    (int)ball.position.x, (int)ball.position.y, (int)ball.radius, (int)ball.radius, 0.0f,
+		    RED, kFillModeSolid);
+		// Novice::DrawSprite((int)ball.position.x, (int)ball.position.y, playerImage, 1, 1, 0.0f,
+		// kFillModeSolid);//プレイヤー
+		for (int i = 0; i < mapY; i++) {
+			for (int p = 0; p < mapX; p++) {
+				if (map[i][p] == 1) { // マップ番号が1の時
+					Novice::DrawSprite(
+					    (p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
+				}
+				if (map[i][p] == 2) { // マップ番号が2の時
+					Novice::DrawSprite(
+					    (p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
+				}
+		}
+		if (scene != nextScene) {
+			scene = nextScene;
+		}
+		///
+		/// ↑更新処理ここまで
+		///
+
+		///
+		/// ↓描画処理ここから
+		///
+		 
+		if (scene == mainscene) {
+			Novice::DrawEllipse((int)ball.position.x, (int)ball.position.y, (int)ball.radius, (int)ball.radius,0.0f, RED, kFillModeSolid);
+
+			// kFillModeSolid);//プレイヤー
+			for (int i = 0; i < mapY; i++) {
+				for (int p = 0; p < mapX; p++) {
+					if (map[i][p] == 1) { // マップ番号が1の時
+						Novice::DrawSprite((p * blockSize), i * blockSize, blockImges1, 1.0f, 1.0f, 0.0f, WHITE);
+					}
+					if (map[i][p] == 2) { // マップ番号が2の時
+						Novice::DrawSprite((p * blockSize), i * blockSize, blockImges2, 1.0f, 1.0f, 0.0f, WHITE);
+					}
+				}
 			}
 		}
-
 
 		///
 		/// ↑描画処理ここまで
