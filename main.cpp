@@ -345,12 +345,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//===========================================================================
 		timer++;
 
-		if (timer > 100) {
+		if (timer > 80) {
 			timer = 0;
 		}
 
 		for (int i = 0; i <= afterImageLength; i++) {
-			if (timer == 10 * i) {
+			if (timer == 8 * i) {
 
 				afterImageX[i] = (int)player.leftTop.x;
 				isDraw[i] = 1;
@@ -387,6 +387,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		//プレイヤー
 		Novice::DrawQuad
 		(
 			int(scsLeftTop.x),
