@@ -105,17 +105,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		if (isJump == 0) {
 			if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
-				ball.speed.y = -5.0f;//ジャンプ
+				ball.jump.y = -10.8f;//ジャンプ
 				isJump = 1;
 			}
 		}
 		else if (isFly == 0 && isJump == 1) {
 			if (preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
-				ball.jump.y = 0.1f;
+				ball.jump.y = 0.5f;
 				isFly = 1;
-			}
-			else {
-				ball.jump.y = 0.8f;
 			}
 		}
 
