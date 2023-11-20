@@ -24,8 +24,6 @@ struct Quad {
 
 };
 
-
-
 //スクリーン座標変換用の関数
 Vector2 ToScreen(Vector2 world)
 {
@@ -59,6 +57,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{9,0},
 
 	};
+
+	float playerAcceleration = 0;
 
 	//スクリーン座標に変換した値を格納する変数
 	Vector2 scsPlayerPos = ToScreen(player.pos);
@@ -135,8 +135,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 	int playerRights[4] = { rightTexture[0],rightTexture[1],rightTexture[2],rightTexture[3] };
 
-
-	//プレイヤーの左向き画像
+	//プレイヤーの左向き画像(後で左向きの画像に差し替え)
 	int leftTexture[4] = {
 		Novice::LoadTexture("./Resources/player/PLAYER1.png"),
 		Novice::LoadTexture("./Resources/player/PLAYER2.png"),
@@ -157,9 +156,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//残像処理用変数
 	const int afterImageLength = 10;
-	int isDraw[afterImageLength] = {};
-	int afterImageX[afterImageLength] = {};
-
+	int isDraw[afterImageLength] = {};//残像が出ているかの管理フラグ
+	int afterImageX[afterImageLength] = {};//各残像のX座標
 	int timer = 0;
 
 	// キー入力結果を受け取る箱
@@ -193,6 +191,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		//中心座標と各頂点をスクリーン座標に変換
+		scsPlayerPos = ToScreen(player.pos);
+		scsLeftTop = ToScreen(player.leftTop);
+		scsRightTop = ToScreen(player.rightTop);
+		scsLeftBottom = ToScreen(player.leftBottom);
+		scsRightBottom = ToScreen(player.rightBottom);
+
 		//マウスの座標が画面中央よりどちらにいるかによって方向管理フラグが切り替わる
 		if (mousePosX >= WIN_WIDTH / 2) {
 			isMouseInTheRight = true;
@@ -205,7 +210,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerDirection = Direction::LEFT;
 		}
 
-		//プレイヤーの描画切り替え処理
+		//プレイヤーの描画向き切り替え処理
 		if (playerDirection == Direction::RIGHT) {
 			playerCurrentTexture = playerRights[playerAnimationIndex];
 		}
@@ -221,7 +226,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerColor = WHITE;
 		}
 
-
+		//各頂点座標を中心座標を基に毎フレーム更新
 		player.leftTop.x = player.pos.x - player.halfWidth;
 		player.leftTop.y = player.pos.y + player.halfHeight;
 
@@ -247,6 +252,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		else if (mousePosX >= furthermoreASL2) {
 			player.pos.x += player.speed3.x;
 		}
+
+		//ここから左方向
 		else if (mousePosX < WIN_WIDTH / 2 && mousePosX > furthermoreASL3) {
 			player.pos.x -= player.speed1.x;
 		}
@@ -257,6 +264,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		else if (mousePosX <= furthermoreASL4) {
 			player.pos.x -= player.speed3.x;
 
+		}
+
+
+
+		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+			player.speed1.y = 20.0f;
+			playerAcceleration = -0.8f;
 		}
 
 		//プレイヤーが画面外にいかないようにする処理
@@ -270,27 +284,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			player.pos.x = WIN_WIDTH - player.halfWidth;
 		}
 
-		//中心座標と各頂点をスクリーン座標に変換
-		ToScreen(player.pos);
-		scsLeftTop = ToScreen(player.leftTop);
-		scsRightTop = ToScreen(player.rightTop);
-		scsLeftBottom = ToScreen(player.leftBottom);
-		scsRightBottom = ToScreen(player.rightBottom);
+		if (player.pos.y < player.halfHeight) {
+			player.speed1.y = 0;
+			playerAcceleration = 0;
+			player.pos.y = player.halfHeight;
+		}
 
+		player.speed1.y += playerAcceleration;
+		player.pos.y += player.speed1.y;
 		//===========================================================================
 		//パーティクルの更新処理
 		//===========================================================================
 
-		//i番目の粒子が出ていなかったらプレイヤーの足元に出現させる
 		if (particleCoolTimer > 0) {
 			particleCoolTimer--;
 		}
 		else {
 			particleCoolTimer = 2;//1秒あたり30個の粒子が出る
 		}
-
+		//particleCoolTimerが0になった時i番目の粒子が出ていなかったらプレイヤーの足元に出現させる
 		if (particleCoolTimer <= 0) {
 			for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
+
 				if (particle[i].isAppear == false) {
 
 					particle[i].isAppear = true;
@@ -332,7 +347,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			}
 
-			//タイマーが0になったら粒子を消す
+			//ムーブタイマーが0になったら粒子を消す
 			if (particle[i].moveTimer == 0) {
 				particle[i].isAppear = false;
 				particle[i].speed.x = 0;
