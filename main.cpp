@@ -30,8 +30,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    WHITE
     };
 
-	int blockImges1 = Novice::LoadTexture("./block4.png"); // ブロックの画像 　　マップ番号が1の時
-	int blockImges2 = Novice::LoadTexture("./Obstacle.png"); // 障害物の画像　 マップ番号が2の時
+	int blockImges1 = Novice::LoadTexture("./images/block4.png"); // ブロックの画像 　　マップ番号が1の時
+	int blockImges2 = Novice::LoadTexture("./images/Obstacle.png"); // 障害物の画像　 マップ番号が2の時
 	int blockSize = 32;
 	// 変数
 	int mapY = 24; // マップ縦幅
@@ -88,6 +88,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+		
 		// 当たり判定の変数
 		leftBottomX = ((int)ball.position.x - (int)ball.radius) / blockSize;
 		leftBottomY = ((int)ball.position.y + (int)ball.radius - 1) / blockSize;
@@ -160,6 +161,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ball.position.x = 200;
 			ball.position.y = 200;
 		}
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -167,6 +169,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+		
 		Novice::DrawEllipse(
 		    (int)ball.position.x, (int)ball.position.y, (int)ball.radius, (int)ball.radius, 0.0f,
 		    RED, kFillModeSolid);
