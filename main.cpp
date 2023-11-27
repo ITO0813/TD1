@@ -95,17 +95,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	const int lineWide = 213;
 
-	// 画面中央を基準としてスピードを変える
-	int accelerateStartLine = WIN_WIDTH / 2; // 略称ASL
 
-	// 画面左エリア
-	int furthermoreASL1 = accelerateStartLine + lineWide;
-	int furthermoreASL2 = furthermoreASL1 + lineWide;
 
-	// 画面右エリア
-	int furthermoreASL3 = accelerateStartLine - lineWide;
-	int furthermoreASL4 = furthermoreASL3 - lineWide;
-
+	
 	// マウスカーソルが中央線に対して左右どちらにいるかを判別する為のフラグ
 	bool isMouseInTheLeft = false;
 	bool isMouseInTheRight = false;
@@ -320,17 +312,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		if (timer > 80) {
 			timer = 0;
-		}
-
-		for (int i = 0; i <= afterImageLength; i++) {
-			if (timer == 8 * i) {
-
-				afterImageX[i] = (int)player.leftTop.x;
-				isDraw[i] = 1;
-
-				isDraw[i - 1] = 0;
-			}
-		}
+	
 		///
 		/// ↑更新処理ここまで
 		///
