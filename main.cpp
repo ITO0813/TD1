@@ -241,7 +241,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case TITLE_SCENE:
 
 			//特定のキーで次のシーンに切り替わる
-			//特定のキーで次のシーンに切り替わる
 			if (!keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 				sceneNumber = TUTORIAL_SCENE;
 			}
@@ -648,14 +647,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			//デバッグ用
-			Novice::ScreenPrintf(0, 0, "leftTop=[%d][%d]", player.leftTop.y, player.leftTop.x);
-			Novice::ScreenPrintf(200, 0, "rightTop=[%d][%d]", player.rightTop.y, player.rightTop.x);
-			Novice::ScreenPrintf(0, 50, "leftBottom=[%d][%d]", player.leftBottom.y, player.leftBottom.x);
-			Novice::ScreenPrintf(200, 50, "rightBottom=[%d][%d]", player.rightBottom.y, player.rightBottom.x);
-			Novice::ScreenPrintf(0, 100, "jumpPower=%5.2f", jumpPower);
-			Novice::ScreenPrintf(0, 150, "playerSpeed.x=%d", playerSpeed.x);
-			Novice::ScreenPrintf(0, 200, "isJumping=%d", isJumpingPlayer);
-			Novice::ScreenPrintf(0, 250, "downSpeed=%5.2f", downSpeed);
+			//Novice::ScreenPrintf(0, 0, "leftTop=[%d][%d]", player.leftTop.y, player.leftTop.x);
+			//Novice::ScreenPrintf(200, 0, "rightTop=[%d][%d]", player.rightTop.y, player.rightTop.x);
+			//Novice::ScreenPrintf(0, 50, "leftBottom=[%d][%d]", player.leftBottom.y, player.leftBottom.x);
+			//Novice::ScreenPrintf(200, 50, "rightBottom=[%d][%d]", player.rightBottom.y, player.rightBottom.x);
+			//Novice::ScreenPrintf(0, 100, "jumpPower=%5.2f", jumpPower);
+			//Novice::ScreenPrintf(0, 150, "playerSpeed.x=%d", playerSpeed.x);
+			//Novice::ScreenPrintf(0, 200, "isJumping=%d", isJumpingPlayer);
+			//Novice::ScreenPrintf(0, 250, "downSpeed=%5.2f", downSpeed);
 
 			Novice::DrawLine(WIN_WIDTH / 2, 0, WIN_WIDTH / 2, WIN_HEIGHT, RED);
 			Novice::DrawLine(furthermoreASL1, 0, furthermoreASL1, WIN_HEIGHT, WHITE);
