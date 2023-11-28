@@ -347,8 +347,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
-			player.speed1.y = 20.0f;
-			playerAcceleration = -0.8f; // ジャンプ処理
+			player.speed1.y = -20.0f;
+			//playerAcceleration = -0.8f; // ジャンプ処理
 		}
 
 		// プレイヤーが画面外にいかないようにする処理
@@ -367,7 +367,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			player.pos.y = player.halfHeight;
 		}
 
-		player.speed1.y += playerAcceleration;
+		//player.speed1.y += playerAcceleration;
+
+		player.speed1.y += player.jump.y; // 重力を加算
 		player.pos.y += player.speed1.y;
 
 		if (map[rightTopY][rightTopX] == 0 && map[rightBottomY][rightBottomX] == 0) {
@@ -375,21 +377,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			player.pos.x = player.pos.x + player.speed.x; // 本体を進める
 		}
 
-		if (isJump == 0) {
-			if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
-				player.jump.y = 1.8f; // ジャンプ
-				isJump = 1;
-			}
-		} else if (isFly == 0 && isJump == 1) {
-			if (preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
-				player.jump.y = 0.5f;
-				isFly = 1;
-			}
-		}
 
-		// player.speed.y += player.jump.y;//重力を加算
 
-		// player.pos.y += player.speed.y;//プレイヤーに重力を加算
+		//if (isJump == 0) {
+		//	if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+		//		player.jump.y = 1.8f; // ジャンプ
+		//		isJump = 1;
+		//	}
+		//} else if (isFly == 0 && isJump == 1) {
+		//	if (preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
+		//		player.jump.y = 0.5f;
+		//		isFly = 1;
+		//	}
+		//}
+
+
+		 //player.pos.y += player.speed.y;//プレイヤーに重力を加算
 
 		// rightBottomX = ((int)player.pos.x + (int)player.radius - 1) / blockSize;
 		// rightBottomY = ((int)player.pos.y + (int)player.radius - 1 + (int)player.speed.y) /
@@ -512,8 +515,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		for (int i = 0; i <= afterImageLength; i++) {
 			if (timer == 8 * i) {
 
-				afterImageX[i] = (int)player.leftBottom.x;
-				isDraw[i] = 1;
+				//afterImageX[i] = (int)player.leftBottom.x;
+				//isDraw[i] = 1;
 
 				isDraw[i - 1] = 0;
 			}
