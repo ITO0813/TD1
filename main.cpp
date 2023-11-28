@@ -24,7 +24,6 @@ struct Quad {
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ライブラリの初期化
-
 	const int BLOCK_SIZE = 32;
 	const int MAP_WIDTH = 80;
 	const int MAP_HEIGHT = 24;
@@ -37,7 +36,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Quad player = {
 		{48,48},
 		16,16,
-
 		//左上 lightTop
 		(player.pos.x - player.halfsize.x) / BLOCK_SIZE,
 		(player.pos.y - player.halfsize.y) / BLOCK_SIZE,
@@ -53,8 +51,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//右下 rightBottom
 		(player.pos.x + player.halfsize.x - 1) / BLOCK_SIZE,
 		(player.pos.y + player.halfsize.y - 1) / BLOCK_SIZE,
-
-
 	};
 
 	int scrollX = 0;
@@ -95,11 +91,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		particle[i].moveTimer = 30;
 		particle[i].acceleration.x = 0.2f;
 		particle[i].acceleration.y = 0.2f;
-
 	}
 
 	int particleCoolTimer = 10;
-
 	unsigned int currentTime = int(time(nullptr));
 	srand(currentTime);
 
@@ -153,13 +147,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int playerCurrentTexture = playerRights[0];//現在のプレイヤーの画像
 
-
 	//プレイヤーの移動速度
 	Vector2 playerSpeed = { 0,0 };
 	Vector2 kTmpSpeed = { 4,4 };
 	Vector2 kPSpeed = { 4,4 };
 
+	//ジャンプ力
 	float jumpPower = 0;
+
+	//ジャンプしていないときの落下速度用変数
 	float downSpeed = 0;
 	bool isJumpingPlayer = false;
 
@@ -239,7 +235,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
-
 		scrollX = int(player.pos.x - scrollStartLineX);
 
 		if (scrollX < 0) {
@@ -286,19 +281,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (isMouseInTheRight) {
 			playerColor = WHITE;
 		}
-
-		//各頂点座標を中心座標を基に毎フレーム更新
-		//player.leftTop.x = playerScsX - player.halfWidth;
-		//player.leftTop.y = player.pos.y - player.halfHeight;
-		//
-		//player.rightTop.x = playerScsX + player.halfWidth;
-		//player.rightTop.y = player.pos.y - player.halfHeight;
-		//
-		//player.leftBottom.x = playerScsX - player.halfWidth;
-		//player.leftBottom.y = player.pos.y + player.halfHeight;
-		//
-		//player.rightBottom.x = playerScsX + player.halfWidth;
-		//player.rightBottom.y = player.pos.y + player.halfHeight;
 
 		///
 		///ジャンプの処理ここから↓
@@ -382,7 +364,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//マウスの位置を取得する
 		Novice::GetMousePosition(&mousePosX, &mousePosY);
 
-		//マウスの座標によってスピードが変わる
+		//マウスの座標と中央線の距離によってスピードが変わる
 		if (mousePosX >= WIN_WIDTH / 2 && mousePosX < furthermoreASL1) {
 			kTmpSpeed.x = 2;
 			kPSpeed.x = 2;
@@ -419,8 +401,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				playerSpeed.x = kPSpeed.x;
 			}
 		}
-
-		//ここから左方向
 		else if (mousePosX < WIN_WIDTH / 2 && mousePosX > furthermoreASL3) {
 			kTmpSpeed.x = 2;
 			kPSpeed.x = 2;
@@ -531,8 +511,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		for (int i = 0; i < afterImageLength; i++) {
 			if (drawCoolTimer == 8 * i) {
 
-				afterImageX[i] = (int)player.leftTop.x;
-				afterImageY[i] = (int)player.leftTop.y;
+				afterImageX[i] = (int)playerScsX - player.halfsize.x;
+				afterImageY[i] = (int)player.pos.y - player.halfsize.y;
 				isDraw[i] = 1;
 			}
 			if (isDraw[i] == 1) {
@@ -564,6 +544,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		//デバッグ用
 		Novice::ScreenPrintf(0, 0, "leftTop=[%d][%d]", player.leftTop.y, player.leftTop.x);
 		Novice::ScreenPrintf(200, 0, "rightTop=[%d][%d]", player.rightTop.y, player.rightTop.x);
 		Novice::ScreenPrintf(0, 50, "leftBottom=[%d][%d]", player.leftBottom.y, player.leftBottom.x);
@@ -580,16 +561,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::DrawLine(furthermoreASL4, 0, furthermoreASL4, WIN_HEIGHT, WHITE);
 
 
-		////残像
-		//for (int i = 0; i < afterImageLength; i++) {
-		//	if (isDraw[i] == 1) {
-		//		Novice::DrawSpriteRect(
-		//			int(afterImageX[i]),
-		//			int(afterImageY[i]),
-		//			0, 0, 16, 16, playerCurrentTexture, 2, 2, 0.0f, BLUE
-		//		);
-		//	}
-		//}
+		//残像
+		for (int i = 0; i < afterImageLength; i++) {
+			if (isDraw[i] == 1) {
+				Novice::DrawSpriteRect(
+					int(afterImageX[i]),
+					int(afterImageY[i]),
+					0, 0, 16, 16, playerCurrentTexture, 2, 2, 0.0f, BLUE
+				);
+			}
+		}
 
 		//プレイヤー
 		Novice::DrawQuad
