@@ -152,12 +152,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector2 kTmpSpeed = { 4,4 };
 	Vector2 kPSpeed = { 4,4 };
 
+
+
 	//ジャンプ力
 	float jumpPower = 0;
 
 	//ジャンプしていないときの落下速度用変数
 	float downSpeed = 0;
+
+	//プレイヤーがジャンプしているかどうか
 	bool isJumpingPlayer = false;
+
+	Vector2 hitCheckLeftT = { 0 };//左上座標
+	Vector2 hitCheckRightB = { 0 };//右下座標
 
 	//インデックスの値を変える間隔を調整するための変数
 	int playerAnimationTimer = 0;
@@ -212,6 +219,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int blockImages1 = Novice::LoadTexture("./Resources/block.png");
 	int blockImages2 = Novice::LoadTexture("./Resources/block.png");
+
+	int obstacleTexture = Novice::LoadTexture("white1x1.png");
+
+	const int OB_NUM_MAX = 256;
+
+	struct Obstacle {
+		Vector2 pos;//中心座標
+		Vector2 halfsize;
+		Vector2 leftTop;
+		Vector2 rightTop;
+		Vector2 leftBottom;
+		Vector2 rightBottom;
+		bool isAppear;
+	};
+
+	Obstacle obstacle[OB_NUM_MAX];
+	for (int i = 0; i < OB_NUM_MAX; i++) {
+		obstacle[i].pos.x = 0;
+		obstacle[i].pos.y = 0;
+
+		obstacle[i].halfsize.x = 16;
+		obstacle[i].halfsize.y = 16;
+
+		obstacle[i].leftTop.x = 0;
+		obstacle[i].leftTop.y = 0;
+
+		obstacle[i].rightTop.x = 0;
+		obstacle[i].rightTop.y = 0;
+
+		obstacle[i].leftBottom.x = 0;
+		obstacle[i].leftBottom.y = 0;
+
+		obstacle[i].rightBottom.x = 0;
+		obstacle[i].rightBottom.y = 0;
+
+		obstacle[i].isAppear = false;
+	}
+
+	int obstacleCoolTimer = 0;
+
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -232,7 +279,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNumber) {
 		case TITLE_SCENE:
 
-			//特定のキーで次のシーンに切り替わる
+
 			//特定のキーで次のシーンに切り替わる
 			if (keys[DIK_SPACE] && preKeys[DIK_SPACE]) {
 				sceneNumber = TUTORIAL_SCENE;
@@ -255,6 +302,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case MAIN_SCENE:
+
+			//===========================================================================
+			//自機の更新処理
+			//===========================================================================
+
+
+
 			//15フレーム毎に画像が切り替わる
 			playerAnimationTimer++;
 			if (playerAnimationTimer % 15 == 0) {
@@ -552,6 +606,83 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					afterImageTimer[i] = 0;
 				}
 			}
+
+			//===========================================================================
+			//障害物の更新処理
+			//===========================================================================
+
+			//当たり判定用にプレイヤーの左上と右下座標を取得する
+			hitCheckLeftT.x = playerScsX - player.halfsize.x;
+			hitCheckLeftT.y = player.pos.y - player.halfsize.y;
+
+			hitCheckRightB.x = playerScsX + player.halfsize.x;
+			hitCheckRightB.y = player.pos.y + player.halfsize.y;
+
+			//プレイヤーと障害物の当たり判定
+			for (int i = 0; i < OB_NUM_MAX; i++) {
+				if (hitCheckLeftT.x < obstacle[i].rightBottom.x && obstacle[i].leftTop.x < hitCheckRightB.x) {
+					if (obstacle[i].leftTop.y < hitCheckRightB.y && hitCheckLeftT.y < obstacle[i].rightBottom.y) {
+						if (obstacle[i].isAppear == true) {
+							//playerHitPoint--;
+							playerColor = GREEN;
+						}
+						obstacle[i].isAppear = false;//当たったら障害物は消える
+					}
+
+				}
+			}
+
+
+			//発射間隔の調整用クールタイムの計算
+			if (obstacleCoolTimer > 0) {
+				obstacleCoolTimer--;
+			}
+			else {
+				obstacleCoolTimer = 15;//個々の数値を変えることで出現間隔を調整
+			}
+
+			// i番目の障害物が出ていなかったら発射する
+			if (obstacleCoolTimer <= 0) {
+				for (int i = 0; i < OB_NUM_MAX; i++) {
+					if (obstacle[i].isAppear == false) {
+
+						obstacle[i].isAppear = true;
+
+						//出現位置を画面右端からランダムな高さにする
+						obstacle[i].pos.x = (WIN_WIDTH - obstacle[i].halfsize.x);
+						obstacle[i].pos.y = rand() % WIN_HEIGHT - obstacle[i].halfsize.y;
+						break;
+					}
+				}
+			}
+
+			//障害物の弾道計算
+			for (int i = 0; i < OB_NUM_MAX; i++) {
+				if (obstacle[i].isAppear == true) {
+
+					obstacle[i].leftTop.x = obstacle[i].pos.x - obstacle[i].halfsize.x;//左上X座標
+					obstacle[i].leftTop.y = obstacle[i].pos.y - obstacle[i].halfsize.y;//左上Y座標
+
+					obstacle[i].rightTop.x = obstacle[i].pos.x + obstacle[i].halfsize.x;//左上X座標
+					obstacle[i].rightTop.y = obstacle[i].pos.y - obstacle[i].halfsize.y;//左上Y座標
+
+					obstacle[i].leftBottom.x = obstacle[i].pos.x - obstacle[i].halfsize.x;//左上X座標
+					obstacle[i].leftBottom.y = obstacle[i].pos.y + obstacle[i].halfsize.y;//左上Y座標
+
+					obstacle[i].rightBottom.x = obstacle[i].pos.x + obstacle[i].halfsize.x;//左上X座標
+					obstacle[i].rightBottom.y = obstacle[i].pos.y + obstacle[i].halfsize.y;//左上Y座標
+
+
+					//障害物の速度
+					obstacle[i].pos.x -= 5;//左方向直線に発射
+
+					// 画面外に出たら発射フラグをFalseに変更する
+					if (obstacle[i].pos.x < player.halfsize.x) {
+						obstacle[i].isAppear = false;
+					}
+				}
+			}
+
 			break;
 
 		case CLEAR_SCENE:
@@ -664,6 +795,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					);
 				}
 			}
+
+			//障害物
+			for (int i = 0; i < OB_NUM_MAX; i++) {
+				if (obstacle[i].isAppear == true) {
+					Novice::DrawQuad
+					(
+						obstacle[i].leftTop.x,
+						obstacle[i].leftTop.y,
+						obstacle[i].rightTop.x,
+						obstacle[i].rightTop.y,
+						obstacle[i].leftBottom.x,
+						obstacle[i].leftBottom.y,
+						obstacle[i].rightBottom.x,
+						obstacle[i].rightBottom.y,
+						0, 0, 1, 1, obstacleTexture, WHITE
+					);
+				}
+			}
+
 			break;
 
 		case CLEAR_SCENE:
