@@ -5,84 +5,89 @@
 const char kWindowTitle[] = "GC1D_03_イトウヒビキ_タイトル";
 
 struct Vector2 {
-	float x;
-	float y;
+	int x;
+	int y;
 
 };
 
 struct Quad {
 	Vector2 pos;//中心座標
-	float halfWidth;
-	float halfHeight;
+	Vector2 halfsize;
 	Vector2 leftTop;
 	Vector2 rightTop;
 	Vector2 leftBottom;
 	Vector2 rightBottom;
-	Vector2 speed1;
-	Vector2 speed2;
-	Vector2 speed3;
 
 };
-
-//スクリーン座標変換用の関数
-Vector2 ToScreen(Vector2 world)
-{
-	const Vector2 kworldToScreenTranslate = { 0.0f,720.0f };
-	const Vector2 kworldToScreenScale = { 1.0f,-1.0f };
-	return
-	{
-		(world.x * kworldToScreenScale.x) + kworldToScreenTranslate.x,
-		(world.y * kworldToScreenScale.y) + kworldToScreenTranslate.y
-	};
-}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ライブラリの初期化
+
+	const int BLOCK_SIZE = 32;
+	const int MAP_WIDTH = 80;
+	const int MAP_HEIGHT = 24;
+	const int WORLD_WIDTH = MAP_WIDTH * BLOCK_SIZE;
 	const int WIN_WIDTH = 1280;
-	const int WIN_HEIGHT = 720;
+	const int WIN_HEIGHT = MAP_HEIGHT * BLOCK_SIZE;
 
 	Novice::Initialize(kWindowTitle, WIN_WIDTH, WIN_HEIGHT);
 
 	Quad player = {
-		{640,32},
-		32,32,
-		{player.pos.x - player.halfWidth,player.pos.y + player.halfHeight},
-		{player.pos.x + player.halfWidth,player.pos.y + player.halfHeight},
-		{player.pos.x - player.halfWidth,player.pos.y - player.halfHeight},
-		{player.pos.x + player.halfWidth,player.pos.y - player.halfHeight},
-		{3,0},
-		{6,0},
-		{9,0},
+		{48,48},
+		16,16,
+
+		//左上 lightTop
+		(player.pos.x - player.halfsize.x) / BLOCK_SIZE,
+		(player.pos.y - player.halfsize.y) / BLOCK_SIZE,
+
+		//右上 rightTop
+		(player.pos.x + player.halfsize.x - 1) / BLOCK_SIZE,
+		(player.pos.y - player.halfsize.y) / BLOCK_SIZE,
+
+		//左下 leftBottom
+		(player.pos.x - player.halfsize.x) / BLOCK_SIZE,
+		(player.pos.y + player.halfsize.y - 1) / BLOCK_SIZE,
+
+		//右下 rightBottom
+		(player.pos.x + player.halfsize.x - 1) / BLOCK_SIZE,
+		(player.pos.y + player.halfsize.y - 1) / BLOCK_SIZE,
+
 
 	};
 
-	float playerAcceleration = 0;
+	int scrollX = 0;
 
-	//スクリーン座標に変換した値を格納する変数
-	Vector2 scsPlayerPos = ToScreen(player.pos);
-	Vector2 scsLeftTop = ToScreen(player.leftTop);
-	Vector2 scsRightTop = ToScreen(player.rightTop);
-	Vector2 scsLeftBottom = ToScreen(player.leftBottom);
-	Vector2 scsRightBottom = ToScreen(player.rightBottom);
+	//スクロールの開始位置
+	int scrollStartLineX = 720 - 64;
+
+	int playerScsX = int(player.pos.x - scrollStartLineX);
+
+	float gravity = 0.8f;
+	//int jumpCount = 0;
 
 	//一度に存在できる粒子の最大数
 	const int ELLIPSE_NUM_MAX = 500;
 
+	struct Vector2Float {
+		float x;
+		float y;
+	};
+
 	struct Particle {
-		Vector2 center;
+		Vector2Float center;
 		int radius;
-		Vector2 speed;
+		Vector2Float speed;
 		bool isAppear;
 		int moveTimer;
-		Vector2 acceleration;
+		Vector2Float acceleration;
 	};
 
 	Particle particle[ELLIPSE_NUM_MAX];
 	for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
-		particle[i].center.x = scsLeftBottom.x;
-		particle[i].center.y = scsLeftBottom.y;
+		particle[i].center.x = (float)player.leftBottom.x;
+		particle[i].center.y = (float)player.leftBottom.y;
 		particle[i].radius = 2;
 		particle[i].speed.x = 0;
 		particle[i].speed.y = 0;
@@ -148,6 +153,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int playerCurrentTexture = playerRights[0];//現在のプレイヤーの画像
 
+
+	//プレイヤーの移動速度
+	Vector2 playerSpeed = { 0,0 };
+	Vector2 kTmpSpeed = { 4,4 };
+	Vector2 kPSpeed = { 4,4 };
+
+	float jumpPower = 0;
+	float downSpeed = 0;
+	bool isJumpingPlayer = false;
+
 	//インデックスの値を変える間隔を調整するための変数
 	int playerAnimationTimer = 0;
 
@@ -158,8 +173,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	const int afterImageLength = 10;
 	int isDraw[afterImageLength] = {};//残像が出ているかの管理フラグ
 	int afterImageX[afterImageLength] = {};//各残像のX座標
-	int timer = 0;
+	int afterImageY[afterImageLength] = {};//各残像のY座標
+	int drawCoolTimer = 0;//残像の描画間隔管理用変数
+	int afterImageTimer[afterImageLength] = { 0 };//残像が存在できる時間
 
+	//ブロックの画像
+
+	int map[MAP_HEIGHT][MAP_WIDTH] = {
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 },
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	};
+
+	int blockImages1 = Novice::LoadTexture("./Resources/block.png");
+	int blockImages2 = Novice::LoadTexture("./Resources/block.png");
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -191,12 +239,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
-		//中心座標と各頂点をスクリーン座標に変換
-		scsPlayerPos = ToScreen(player.pos);
-		scsLeftTop = ToScreen(player.leftTop);
-		scsRightTop = ToScreen(player.rightTop);
-		scsLeftBottom = ToScreen(player.leftBottom);
-		scsRightBottom = ToScreen(player.rightBottom);
+
+		scrollX = int(player.pos.x - scrollStartLineX);
+
+		if (scrollX < 0) {
+			scrollX = 0;
+		}
+
+		if (scrollX > WORLD_WIDTH - WIN_WIDTH) {
+			scrollX = WORLD_WIDTH - WIN_WIDTH;
+		}
+
+		//プレイヤーのスクリーン座標
+		playerScsX = int(player.pos.x - scrollX);
+
+		player.pos.x += playerSpeed.x;
+		player.pos.y += playerSpeed.y;
+
+		playerSpeed.x = 0;
+		playerSpeed.y = 0;
 
 		//マウスの座標が画面中央よりどちらにいるかによって方向管理フラグが切り替わる
 		if (mousePosX >= WIN_WIDTH / 2) {
@@ -227,71 +288,177 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		//各頂点座標を中心座標を基に毎フレーム更新
-		player.leftTop.x = player.pos.x - player.halfWidth;
-		player.leftTop.y = player.pos.y + player.halfHeight;
+		//player.leftTop.x = playerScsX - player.halfWidth;
+		//player.leftTop.y = player.pos.y - player.halfHeight;
+		//
+		//player.rightTop.x = playerScsX + player.halfWidth;
+		//player.rightTop.y = player.pos.y - player.halfHeight;
+		//
+		//player.leftBottom.x = playerScsX - player.halfWidth;
+		//player.leftBottom.y = player.pos.y + player.halfHeight;
+		//
+		//player.rightBottom.x = playerScsX + player.halfWidth;
+		//player.rightBottom.y = player.pos.y + player.halfHeight;
 
-		player.rightTop.x = player.pos.x + player.halfWidth;
-		player.rightTop.y = player.pos.y + player.halfHeight;
+		///
+		///ジャンプの処理ここから↓
+		/// 
+		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+			if (isJumpingPlayer == false) {
+				jumpPower = -16.0f;
+				isJumpingPlayer = true;
+			}
+		}
 
-		player.leftBottom.x = player.pos.x - player.halfWidth;
-		player.leftBottom.y = player.pos.y - player.halfHeight;
+		//プレイヤーがいる位置のマップ番号取得
+		player.leftTop.x = (player.pos.x - player.halfsize.x) / BLOCK_SIZE;
+		player.rightTop.x = (player.pos.x + player.halfsize.x - 1) / BLOCK_SIZE;
 
-		player.rightBottom.x = player.pos.x + player.halfWidth;
-		player.rightBottom.y = player.pos.y - player.halfHeight;
+		player.leftTop.y = (player.pos.y - player.halfsize.y + playerSpeed.y) / BLOCK_SIZE;
+		player.rightTop.y = (player.pos.y - player.halfsize.y + playerSpeed.y) / BLOCK_SIZE;
 
+		player.leftBottom.x = (player.pos.x - player.halfsize.x) / BLOCK_SIZE;
+		player.rightBottom.x = (player.pos.x + player.halfsize.x - 1) / BLOCK_SIZE;
+
+		player.leftBottom.y = (player.pos.y + player.halfsize.y + playerSpeed.y - 1) / BLOCK_SIZE;
+		player.rightBottom.y = (player.pos.y + player.halfsize.y + playerSpeed.y - 1) / BLOCK_SIZE;
+
+
+		//ジャンプしているとき
+		if (isJumpingPlayer == true) {
+
+			//どちら片方でもブロックに当たっていれば跳ね返る
+			if (map[player.rightTop.y][player.rightTop.x] != 0) {
+				jumpPower = 0;
+				//めり込まないように位置を戻す
+				player.pos.y = player.rightTop.y * BLOCK_SIZE + (player.halfsize.y * 3);
+			}
+			else if (map[player.leftTop.y][player.leftTop.x] != 0) {
+				jumpPower = 0;
+				player.pos.y = player.rightTop.y * BLOCK_SIZE + (player.halfsize.y * 3);
+			}
+
+			if (map[player.rightBottom.y][player.rightBottom.x] == 0 && map[player.leftBottom.y][player.leftBottom.x] == 0)
+			{
+				//下辺がブロックに当たっていなければ落下する
+				jumpPower += gravity;
+				playerSpeed.y = (int)jumpPower;
+			}
+			//どちらか片方でもブロックに当たっていれば止まる
+			else if (map[player.leftBottom.y][player.leftBottom.x] != 0) {
+				player.pos.y = player.leftBottom.y * BLOCK_SIZE - player.halfsize.y;
+				jumpPower = 0;
+				isJumpingPlayer = false;
+			}
+			else if (map[player.rightBottom.y][player.rightBottom.x] != 0) {
+				player.pos.y = player.leftBottom.y * BLOCK_SIZE - player.halfsize.y;
+				jumpPower = 0;
+				isJumpingPlayer = false;
+			}
+		}
+		//自然落下処理
+		else if (isJumpingPlayer == false) {//プレイヤーがジャンプしていないとき
+
+			if (map[player.rightBottom.y][player.rightBottom.x] == 0 && map[player.leftBottom.y][player.leftBottom.x] == 0)
+			{
+				downSpeed += gravity;
+				playerSpeed.y = (int)downSpeed;
+			}
+			//どちらか片方でもブロックに乗っていれば落下を止める
+			if (map[player.leftBottom.y][player.leftBottom.x] != 0) {
+				player.pos.y = player.leftBottom.y * BLOCK_SIZE - player.halfsize.y;
+				downSpeed = 0;
+			}
+			else if (map[player.rightBottom.y][player.rightBottom.x] != 0) {
+				player.pos.y = player.leftBottom.y * BLOCK_SIZE - player.halfsize.y;
+				downSpeed = 0;
+			}
+		}
+		///
+		///ジャンプの処理ここまで↑
+		/// 
+
+		//プレイヤーの移動処理
 		//マウスの位置を取得する
 		Novice::GetMousePosition(&mousePosX, &mousePosY);
 
 		//マウスの座標によってスピードが変わる
 		if (mousePosX >= WIN_WIDTH / 2 && mousePosX < furthermoreASL1) {
-			player.pos.x += player.speed1.x;
+			kTmpSpeed.x = 2;
+			kPSpeed.x = 2;
+			player.rightTop.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			player.rightBottom.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.rightTop.y][player.rightTop.x] == 0 && map[player.rightBottom.y][player.rightBottom.x] == 0)
+			{
+				playerSpeed.x = kPSpeed.x;
+			}
 		}
 		else if (mousePosX >= furthermoreASL1 && mousePosX < furthermoreASL2) {
-			player.pos.x += player.speed2.x;
+			kTmpSpeed.x = 4;
+			kPSpeed.x = 4;
+			player.rightTop.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			player.rightBottom.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.rightTop.y][player.rightTop.x] == 0 && map[player.rightBottom.y][player.rightBottom.x] == 0)
+			{
+				playerSpeed.x = kPSpeed.x;
+			}
 		}
 		else if (mousePosX >= furthermoreASL2) {
-			player.pos.x += player.speed3.x;
+			kTmpSpeed.x = 8;
+			kPSpeed.x = 8;
+			player.rightTop.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			player.rightBottom.x = (player.pos.x + player.halfsize.x - 1 + kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.rightTop.y][player.rightTop.x] == 0 && map[player.rightBottom.y][player.rightBottom.x] == 0)
+			{
+				playerSpeed.x = kPSpeed.x;
+			}
 		}
 
 		//ここから左方向
 		else if (mousePosX < WIN_WIDTH / 2 && mousePosX > furthermoreASL3) {
-			player.pos.x -= player.speed1.x;
+			kTmpSpeed.x = 2;
+			kPSpeed.x = 2;
+			player.leftTop.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
+
+			player.leftBottom.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.leftTop.y][player.leftTop.x] == 0 && map[player.leftBottom.y][player.leftBottom.x] == 0)
+			{
+				playerSpeed.x = -kPSpeed.x;
+			}
+
 		}
 		else if (mousePosX <= furthermoreASL3 && mousePosX > furthermoreASL4) {
-			player.pos.x -= player.speed2.x;
+			kTmpSpeed.x = 4;
+			kPSpeed.x = 4;
+			player.leftTop.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
 
+			player.leftBottom.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.leftTop.y][player.leftTop.x] == 0 && map[player.leftBottom.y][player.leftBottom.x] == 0)
+			{
+				playerSpeed.x = -kPSpeed.x;
+			}
 		}
 		else if (mousePosX <= furthermoreASL4) {
-			player.pos.x -= player.speed3.x;
+			kTmpSpeed.x = 8;
+			kPSpeed.x = 8;
+			player.leftTop.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
 
+			player.leftBottom.x = (player.pos.x - player.halfsize.x - kTmpSpeed.x) / BLOCK_SIZE;
+
+			if (map[player.leftTop.y][player.leftTop.x] == 0 && map[player.leftBottom.y][player.leftBottom.x] == 0)
+			{
+				playerSpeed.x = -kPSpeed.x;
+			}
 		}
 
-
-
-		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
-			player.speed1.y = 20.0f;
-			playerAcceleration = -0.8f;
-		}
-
-		//プレイヤーが画面外にいかないようにする処理
-		if (player.pos.x < player.halfWidth) {
-
-			player.pos.x = player.halfWidth;
-
-		}
-		else if (player.pos.x > WIN_WIDTH - player.halfWidth) {
-
-			player.pos.x = WIN_WIDTH - player.halfWidth;
-		}
-
-		if (player.pos.y < player.halfHeight) {
-			player.speed1.y = 0;
-			playerAcceleration = 0;
-			player.pos.y = player.halfHeight;
-		}
-
-		player.speed1.y += playerAcceleration;
-		player.pos.y += player.speed1.y;
 		//===========================================================================
 		//パーティクルの更新処理
 		//===========================================================================
@@ -311,14 +478,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					particle[i].isAppear = true;
 
 					//パーティクルの発生位置を足元に合わせる
-					particle[i].center.x = scsLeftBottom.x + 30;
-					particle[i].center.y = scsLeftBottom.y;
+					particle[i].center.x = (float)playerScsX;
+					particle[i].center.y = (float)player.pos.y + player.halfsize.y;
 					break;
 				}
 			}
 		}
-
-
 
 		for (int i = 0; i < ELLIPSE_NUM_MAX; i++) {
 
@@ -346,7 +511,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 
 			}
-
 			//ムーブタイマーが0になったら粒子を消す
 			if (particle[i].moveTimer == 0) {
 				particle[i].isAppear = false;
@@ -358,19 +522,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//===========================================================================
 		//残像の更新処理
 		//===========================================================================
-		timer++;
+		drawCoolTimer++;
 
-		if (timer > 80) {
-			timer = 0;
+		if (drawCoolTimer > 80) {
+			drawCoolTimer = 0;
 		}
 
-		for (int i = 0; i <= afterImageLength; i++) {
-			if (timer == 8 * i) {
+		for (int i = 0; i < afterImageLength; i++) {
+			if (drawCoolTimer == 8 * i) {
 
 				afterImageX[i] = (int)player.leftTop.x;
+				afterImageY[i] = (int)player.leftTop.y;
 				isDraw[i] = 1;
+			}
+			if (isDraw[i] == 1) {
+				afterImageTimer[i]++;
+			}
 
-				isDraw[i - 1] = 0;
+			if (afterImageTimer[i] >= 20) {
+				isDraw[i] = 0;
+				afterImageTimer[i] = 0;
 			}
 		}
 		///
@@ -381,8 +552,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::ScreenPrintf(0, 0, "timer=%d", timer);
+		//マップ
+		for (int y = 0; y < MAP_HEIGHT; y++) {
+			for (int x = 0; x < MAP_WIDTH; x++) {
+				if (map[y][x] == 1) { // マップ番号が1の時
+					Novice::DrawSprite((x * BLOCK_SIZE - scrollX), y * BLOCK_SIZE, blockImages1, 1.0f, 1.0f, 0.0f, RED);
+				}
+				else if (map[y][x] == 2) { // マップ番号が2の時
+					Novice::DrawSprite((x * BLOCK_SIZE - scrollX), y * BLOCK_SIZE, blockImages2, 1.0f, 1.0f, 0.0f, BLUE);
+				}
+			}
+		}
 
+		Novice::ScreenPrintf(0, 0, "leftTop=[%d][%d]", player.leftTop.y, player.leftTop.x);
+		Novice::ScreenPrintf(200, 0, "rightTop=[%d][%d]", player.rightTop.y, player.rightTop.x);
+		Novice::ScreenPrintf(0, 50, "leftBottom=[%d][%d]", player.leftBottom.y, player.leftBottom.x);
+		Novice::ScreenPrintf(200, 50, "rightBottom=[%d][%d]", player.rightBottom.y, player.rightBottom.x);
+		Novice::ScreenPrintf(0, 100, "jumpPower=%5.2f", jumpPower);
+		Novice::ScreenPrintf(0, 150, "playerSpeed.y=%d", playerSpeed.y);
+		Novice::ScreenPrintf(0, 200, "isJumping=%d", isJumpingPlayer);
+		Novice::ScreenPrintf(0, 250, "downSpeed=%5.2f", downSpeed);
 
 		Novice::DrawLine(WIN_WIDTH / 2, 0, WIN_WIDTH / 2, WIN_HEIGHT, RED);
 		Novice::DrawLine(furthermoreASL1, 0, furthermoreASL1, WIN_HEIGHT, WHITE);
@@ -391,28 +580,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::DrawLine(furthermoreASL4, 0, furthermoreASL4, WIN_HEIGHT, WHITE);
 
 
-		//残像
-		for (int i = 0; i < afterImageLength; i++) {
-			if (isDraw[i] == 1) {
-				Novice::DrawSpriteRect(
-					int(afterImageX[i]),
-					int(scsLeftTop.y),
-					0, 0, 16, 16, playerCurrentTexture, 4, 4, 0.0f, BLUE
-				);
-			}
-		}
+		////残像
+		//for (int i = 0; i < afterImageLength; i++) {
+		//	if (isDraw[i] == 1) {
+		//		Novice::DrawSpriteRect(
+		//			int(afterImageX[i]),
+		//			int(afterImageY[i]),
+		//			0, 0, 16, 16, playerCurrentTexture, 2, 2, 0.0f, BLUE
+		//		);
+		//	}
+		//}
 
 		//プレイヤー
 		Novice::DrawQuad
 		(
-			int(scsLeftTop.x),
-			int(scsLeftTop.y),
-			int(scsRightTop.x),
-			int(scsRightTop.y),
-			int(scsLeftBottom.x),
-			int(scsLeftBottom.y),
-			int(scsRightBottom.x),
-			int(scsRightBottom.y),
+			int(playerScsX - player.halfsize.x),
+			int(player.pos.y - player.halfsize.y),
+
+			int(playerScsX + player.halfsize.x),
+			int(player.pos.y - player.halfsize.y),
+
+			int(playerScsX - player.halfsize.x),
+			int(player.pos.y + player.halfsize.y),
+
+			int(playerScsX + player.halfsize.x),
+			int(player.pos.y + player.halfsize.y),
 			0, 0, 16, 16, playerCurrentTexture, playerColor
 		);
 
@@ -428,9 +620,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					0.0f, 0x50FA23FF, kFillModeSolid
 				);
 			}
-
 		}
-
 		///
 		/// ↑描画処理ここまで
 		///
@@ -444,7 +634,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 	}
 
-	// ライブラリの終了
+	//ライブラリの終了	
 	Novice::Finalize();
 	return 0;
 }
